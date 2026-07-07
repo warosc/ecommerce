@@ -1,0 +1,13 @@
+import { Module } from '@nestjs/common';
+import { EVENT_PUBLISHER } from '../inventory/application/ports/event-publisher';
+import { MessagingService } from './messaging.service';
+
+/** Provee el cliente RabbitMQ y lo expone como EventPublisher del dominio. */
+@Module({
+  providers: [
+    MessagingService,
+    { provide: EVENT_PUBLISHER, useExisting: MessagingService },
+  ],
+  exports: [MessagingService, EVENT_PUBLISHER],
+})
+export class MessagingModule {}

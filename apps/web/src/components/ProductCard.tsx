@@ -1,0 +1,40 @@
+import type { ProductDto, ProductType } from '@optimus/contracts';
+import { AddToCartButton } from '@/components/AddToCartButton';
+import { formatPrice } from '@/lib/format';
+
+const TYPE_LABELS: Record<ProductType, string> = {
+  FRAME: 'Montura',
+  LENS: 'Lente',
+  ACCESSORY: 'Accesorio',
+};
+
+export function ProductCard({ product }: { product: ProductDto }) {
+  const inStock = product.stock > 0;
+
+  return (
+    <article className="card">
+      <div className="card__media">
+        {product.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="card__img" src={product.images[0]} alt={product.name} />
+        ) : (
+          <div className="card__img card__img--placeholder" aria-hidden="true" />
+        )}
+      </div>
+      <div className="card__body">
+        <span className="card__type">{TYPE_LABELS[product.type]}</span>
+        <h3 className="card__name">{product.name}</h3>
+        <p className="card__brand">{product.brand}</p>
+        <div className="card__footer">
+          <span className="card__price">
+            {formatPrice(product.price.amount, product.price.currency)}
+          </span>
+          <span className={`badge ${inStock ? 'badge--in' : 'badge--out'}`}>
+            {inStock ? `Stock: ${product.stock}` : 'Agotado'}
+          </span>
+        </div>
+        {product.active ? <AddToCartButton sku={product.sku} /> : null}
+      </div>
+    </article>
+  );
+}

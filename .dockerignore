@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/.turbo
+**/*.tsbuildinfo
+.git
+.gitignore
+**/.env
+**/.env.local
+docs
+prompt

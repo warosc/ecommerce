@@ -1,0 +1,59 @@
+'use client';
+
+import { useActionState } from 'react';
+import { createProduct, type CreateProductState } from '@/app/actions';
+
+const INITIAL: CreateProductState = { ok: false, message: '' };
+
+export function CreateProductForm() {
+  const [state, formAction, pending] = useActionState(createProduct, INITIAL);
+
+  return (
+    <form action={formAction} className="form">
+      <div className="grid2">
+        <label>
+          SKU
+          <input name="sku" required placeholder="FR-NUEVA-01" />
+        </label>
+        <label>
+          Marca
+          <input name="brand" required placeholder="Optimus" />
+        </label>
+      </div>
+      <label>
+        Nombre
+        <input name="name" required placeholder="Montura Classic" />
+      </label>
+      <label>
+        Descripción
+        <input name="description" placeholder="Opcional" />
+      </label>
+      <div className="grid2">
+        <label>
+          Tipo
+          <select name="type" defaultValue="FRAME">
+            <option value="FRAME">Montura</option>
+            <option value="LENS">Lente</option>
+            <option value="ACCESSORY">Accesorio</option>
+          </select>
+        </label>
+        <label>
+          Precio (centavos GTQ)
+          <input name="priceAmount" type="number" min="0" required defaultValue={45000} />
+        </label>
+      </div>
+      <label>
+        Stock
+        <input name="stock" type="number" min="0" defaultValue={0} />
+      </label>
+
+      <button className="btn btn--primary" type="submit" disabled={pending}>
+        {pending ? 'Creando…' : 'Crear producto'}
+      </button>
+
+      {state.message ? (
+        <p className={state.ok ? 'alert alert--ok' : 'alert alert--err'}>{state.message}</p>
+      ) : null}
+    </form>
+  );
+}

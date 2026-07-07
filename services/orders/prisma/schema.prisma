@@ -1,0 +1,41 @@
+// Prisma schema — microservicio Pedidos (Óptica Optimus)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PLACED
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  status        OrderStatus @default(PLACED)
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  totalAmount   Int
+  currency      String      @default("GTQ")
+  createdAt     DateTime    @default(now())
+  lines         OrderLine[]
+
+  @@map("orders")
+}
+
+model OrderLine {
+  id              String @id @default(uuid())
+  orderId         String
+  sku             String
+  name            String
+  unitPriceAmount Int
+  quantity        Int
+  order           Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_lines")
+}

@@ -1,0 +1,283 @@
+name: optimus
+
+services:
+  # Proxy del socket de Docker: expone una API TCP filtrada (solo lectura) para
+  # Traefik. Evita que Traefik acceda al socket directamente (más seguro y
+  # sortea el fallo del cliente Docker de Traefik con Docker Desktop).
+  dockerproxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    environment:
+      CONTAINERS: '1'
+      NETWORKS: '1'
+      SERVICES: '1'
+      TASKS: '1'
+      EVENTS: '1'
+      PING: '1'
+      VERSION: '1'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - optimus-net
+
+  traefik:
+    image: traefik:v3
+    command:
+      - --providers.docker=true
+      - --providers.docker.endpoint=tcp://dockerproxy:2375
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+      - --api.insecure=true
+    depends_on:
+      - dockerproxy
+    ports:
+      - '80:80'
+      - '8080:8080'
+    networks:
+      - optimus-net
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Crea la BD optimus_inventory al inicializar el volumen (una BD por servicio).
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - '5432:5432'
+    networks:
+      - optimus-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ['start-dev', '--import-realm']
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: 'true'
+      KC_HOSTNAME: http://auth.localhost
+      KC_HOSTNAME_STRICT: 'false'
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: 'true'
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.keycloak.rule=Host(`auth.localhost`)
+      - traefik.http.routers.keycloak.entrypoints=web
+      - traefik.http.services.keycloak.loadbalancer.server.port=8080
+    networks:
+      - optimus-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - optimus-net
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - optimus-net
+
+  catalog-api:
+    build:
+      context: .
+      dockerfile: services/catalog/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CATALOG_PORT: '3001'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.catalog.rule=Host(`api.localhost`)
+      - traefik.http.routers.catalog.entrypoints=web
+      - traefik.http.services.catalog.loadbalancer.server.port=3001
+    ports:
+      - '${CATALOG_PORT:-3001}:3001'
+    networks:
+      - optimus-net
+
+  inventory-api:
+    build:
+      context: .
+      dockerfile: services/inventory/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${INVENTORY_DATABASE_URL}
+      INVENTORY_PORT: '3003'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.inventory.rule=Host(`inventory.localhost`)
+      - traefik.http.routers.inventory.entrypoints=web
+      - traefik.http.services.inventory.loadbalancer.server.port=3003
+    ports:
+      - '${INVENTORY_PORT:-3003}:3003'
+    networks:
+      - optimus-net
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: services/orders/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${ORDERS_DATABASE_URL}
+      ORDERS_PORT: '3005'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      REDIS_URL: ${REDIS_URL}
+      CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
+      INVENTORY_API_INTERNAL: ${INVENTORY_API_INTERNAL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3005/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.orders.rule=Host(`orders.localhost`)
+      - traefik.http.routers.orders.entrypoints=web
+      - traefik.http.services.orders.loadbalancer.server.port=3005
+    ports:
+      - '${ORDERS_PORT:-3005}:3005'
+    networks:
+      - optimus-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    depends_on:
+      catalog-api:
+        condition: service_healthy
+      orders-api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL_INTERNAL: ${API_BASE_URL_INTERNAL}
+      ORDERS_API_INTERNAL: ${ORDERS_API_INTERNAL}
+      NODE_ENV: production
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=Host(`web.localhost`)
+      - traefik.http.routers.web.entrypoints=web
+      - traefik.http.services.web.loadbalancer.server.port=3000
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    networks:
+      - optimus-net
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    depends_on:
+      - keycloak
+      - catalog-api
+    environment:
+      NODE_ENV: production
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_TRUST_HOST: 'true'
+      # URL pública fija (vía Traefik). IMPORTANTE: acceder al panel por
+      # http://admin.localhost (no por localhost:3002) para que la cookie PKCE
+      # y el callback usen el mismo host.
+      AUTH_URL: http://admin.localhost
+      AUTH_KEYCLOAK_ID: ${AUTH_KEYCLOAK_ID}
+      AUTH_KEYCLOAK_SECRET: ${AUTH_KEYCLOAK_SECRET}
+      AUTH_KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
+    # El contenedor resuelve auth.localhost hacia Traefik (en el host) para el
+    # descubrimiento OIDC y el intercambio de tokens server-side.
+    extra_hosts:
+      - 'auth.localhost:host-gateway'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.admin.rule=Host(`admin.localhost`)
+      - traefik.http.routers.admin.entrypoints=web
+      - traefik.http.services.admin.loadbalancer.server.port=3002
+    ports:
+      - '${ADMIN_PORT:-3002}:3002'
+    networks:
+      - optimus-net
+
+networks:
+  optimus-net:
+    driver: bridge
+
+volumes:
+  pgdata:

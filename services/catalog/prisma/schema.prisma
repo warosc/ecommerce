@@ -1,0 +1,39 @@
+// Prisma schema — microservicio Catálogo (Óptica Optimus)
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductType {
+  FRAME
+  LENS
+  ACCESSORY
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  sku         String      @unique
+  name        String
+  description String      @default("")
+  type        ProductType
+  brand       String
+  /// Precio en centavos (entero) para evitar errores de punto flotante.
+  priceAmount Int
+  /// Moneda ISO 4217. Por defecto GTQ (Quetzal guatemalteco).
+  currency    String      @default("GTQ")
+  stock       Int         @default(0)
+  images      String[]
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([type])
+  @@index([active])
+  @@map("products")
+}

@@ -1,0 +1,65 @@
+{
+  "realm": "optimus",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 1800,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Administrador de la plataforma Optimus" },
+      { "name": "vendedor", "description": "Personal de ventas (solo lectura de catálogo)" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "optimus-admin",
+      "name": "Optimus Admin",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "optimus-admin-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://admin.localhost/*",
+        "http://localhost:3002/*"
+      ],
+      "webOrigins": [
+        "http://admin.localhost",
+        "http://localhost:3002"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://admin.localhost/*##http://localhost:3002/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@optimus.test",
+      "firstName": "Ana",
+      "lastName": "Administradora",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "admin123", "temporary": false }
+      ],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "vendedor",
+      "email": "vendedor@optimus.test",
+      "firstName": "Victor",
+      "lastName": "Vendedor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "vendedor123", "temporary": false }
+      ],
+      "realmRoles": ["vendedor"]
+    }
+  ]
+}
