@@ -81,6 +81,7 @@ describe('Product.fromPersistence', () => {
       price: Money.create(6000),
       stock: 10,
       images: [],
+      tryOnImageUrl: null,
       active: true,
       createdAt,
       updatedAt: createdAt,
@@ -89,5 +90,6 @@ describe('Product.fromPersistence', () => {
     expect(product.createdAt).toBe(createdAt);
     expect(product.type).toBe('ACCESSORY');
     expect(product.sku.value).toBe('AC-1');
+    expect(product.tryOnImageUrl).toBeNull();
   });
 });

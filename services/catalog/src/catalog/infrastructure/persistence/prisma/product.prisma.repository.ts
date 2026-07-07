@@ -69,4 +69,14 @@ export class PrismaProductRepository implements ProductRepository {
     });
     return ProductMapper.toDomain(record);
   }
+
+  async setTryOnImage(id: string, url: string): Promise<Product | null> {
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) return null;
+    const record = await this.prisma.product.update({
+      where: { id },
+      data: { tryOnImageUrl: url },
+    });
+    return ProductMapper.toDomain(record);
+  }
 }

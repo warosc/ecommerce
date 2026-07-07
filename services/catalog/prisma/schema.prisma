@@ -29,6 +29,8 @@ model Product {
   currency    String      @default("GTQ")
   stock       Int         @default(0)
   images      String[]
+  /// URL de la imagen para el probador virtual (PNG/WebP transparente frontal).
+  tryOnImageUrl String?
   active      Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

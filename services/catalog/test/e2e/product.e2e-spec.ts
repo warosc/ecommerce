@@ -9,6 +9,7 @@ import { RolesGuard } from '../../src/auth/roles.guard';
 import { EVENT_PUBLISHER } from '../../src/catalog/application/ports/event-publisher';
 import { IMAGE_STORAGE } from '../../src/catalog/application/ports/image-storage';
 import { AddProductImageUseCase } from '../../src/catalog/application/use-cases/add-product-image/add-product-image.usecase';
+import { SetProductTryOnImageUseCase } from '../../src/catalog/application/use-cases/set-try-on-image/set-try-on-image.usecase';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { PRODUCT_REPOSITORY } from '../../src/catalog/domain/repositories/product.repository';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
@@ -39,6 +40,7 @@ describe('Products (e2e)', () => {
         GetProductUseCase,
         CreateProductUseCase,
         AddProductImageUseCase,
+        SetProductTryOnImageUseCase,
         { provide: PRODUCT_REPOSITORY, useValue: new InMemoryProductRepository([seeded]) },
         { provide: EVENT_PUBLISHER, useValue: { publish: async () => undefined } },
         {
@@ -184,6 +186,39 @@ describe('Products (e2e)', () => {
     it('devuelve 404 si el producto no existe', async () => {
       await request(app.getHttpServer())
         .post('/api/products/no-existe/images')
+        .attach('file', Buffer.from('x'), { filename: 'a.png', contentType: 'image/png' })
+        .expect(404);
+    });
+  });
+
+  describe('POST /api/products/:id/try-on-image', () => {
+    it('sube la montura y fija tryOnImageUrl (201)', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/api/products/${seeded.id}/try-on-image`)
+        .attach('file', Buffer.from('montura-fake'), {
+          filename: 'redonda.png',
+          contentType: 'image/png',
+        })
+        .expect(201);
+      expect(res.body.tryOnImageUrl).toContain('redonda.png');
+    });
+
+    it('rechaza si falta el archivo (400)', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/products/${seeded.id}/try-on-image`)
+        .expect(400);
+    });
+
+    it('rechaza un JPG (no transparente) con 400', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/products/${seeded.id}/try-on-image`)
+        .attach('file', Buffer.from('jpg'), { filename: 'foto.jpg', contentType: 'image/jpeg' })
+        .expect(400);
+    });
+
+    it('devuelve 404 si el producto no existe', async () => {
+      await request(app.getHttpServer())
+        .post('/api/products/no-existe/try-on-image')
         .attach('file', Buffer.from('x'), { filename: 'a.png', contentType: 'image/png' })
         .expect(404);
     });

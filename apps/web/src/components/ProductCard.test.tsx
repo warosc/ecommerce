@@ -14,6 +14,7 @@ function makeProduct(overrides: Partial<ProductDto> = {}): ProductDto {
     price: { amount: 45000, currency: 'GTQ' },
     stock: 5,
     images: ['https://example.com/a.jpg'],
+    tryOnImageUrl: null,
     active: true,
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z',
@@ -49,5 +50,18 @@ describe('ProductCard', () => {
     );
     expect(screen.getByText('Agotado')).toBeInTheDocument();
     expect(container.querySelector('.card__img--placeholder')).not.toBeNull();
+  });
+
+  it('muestra el enlace "Probar" solo si el producto tiene montura de probador', () => {
+    const { rerender } = render(<ProductCard product={makeProduct()} />);
+    expect(screen.queryByText(/Probar/)).toBeNull();
+
+    rerender(
+      <ProductCard
+        product={makeProduct({ id: 'xyz', tryOnImageUrl: 'http://minio/tryon/xyz.png' })}
+      />,
+    );
+    const link = screen.getByText(/Probar/).closest('a') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/probador?frame=xyz');
   });
 });

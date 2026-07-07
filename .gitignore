@@ -35,3 +35,7 @@ Thumbs.db
 .opencode/
 .claude/
 .opencode
+
+# Probador virtual: assets generados en build (WASM MediaPipe + modelo descargado)
+apps/web/public/mediapipe/
+apps/web/public/models/

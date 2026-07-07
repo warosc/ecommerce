@@ -20,6 +20,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/components/**', 'src/lib/**'],
+      // El probador AR depende de cámara/canvas/WASM (MediaPipe) y no es
+      // testeable en jsdom; se verifica manualmente en el navegador.
+      exclude: ['src/components/VirtualTryOn.tsx'],
       thresholds: {
         statements: 90,
         branches: 90,

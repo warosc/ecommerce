@@ -68,6 +68,25 @@ export async function createProduct(
         }
       }
 
+      // Subida opcional de la montura para el probador virtual (PNG/WebP transparente).
+      const tryOn = formData.get('tryOnImage');
+      if (tryOn instanceof File && tryOn.size > 0) {
+        const fd = new FormData();
+        fd.append('file', tryOn, tryOn.name);
+        const up = await fetch(`${CATALOG_API}/products/${created.id}/try-on-image`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        if (!up.ok) {
+          const detail = await up.text();
+          return {
+            ok: true,
+            message: `Producto ${created.sku} creado, pero la montura del probador falló (HTTP ${up.status}): ${detail}`,
+          };
+        }
+      }
+
       return { ok: true, message: `Producto creado: ${created.sku} — ${created.name}` };
     }
     if (res.status === 401) {

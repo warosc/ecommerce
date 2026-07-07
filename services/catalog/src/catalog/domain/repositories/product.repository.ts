@@ -32,4 +32,6 @@ export interface ProductRepository {
   updateStockBySku(sku: string, stock: number): Promise<void>;
   /** Añade una URL de imagen al producto; devuelve el producto o null si no existe. */
   appendImage(id: string, url: string): Promise<Product | null>;
+  /** Fija la URL de la montura para el probador; devuelve el producto o null si no existe. */
+  setTryOnImage(id: string, url: string): Promise<Product | null>;
 }

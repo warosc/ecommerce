@@ -15,6 +15,8 @@ export interface ProductProps {
   price: Money;
   stock: number;
   images: string[];
+  /** URL de la montura para el probador virtual (transparente), o null. */
+  tryOnImageUrl: string | null;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -70,6 +72,7 @@ export class Product {
       price: input.price,
       stock,
       images,
+      tryOnImageUrl: null,
       active: input.active ?? true,
       createdAt: now,
       updatedAt: now,
@@ -107,6 +110,9 @@ export class Product {
   }
   get images(): string[] {
     return [...this.props.images];
+  }
+  get tryOnImageUrl(): string | null {
+    return this.props.tryOnImageUrl;
   }
   get active(): boolean {
     return this.props.active;

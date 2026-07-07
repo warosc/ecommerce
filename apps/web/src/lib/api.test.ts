@@ -14,6 +14,7 @@ const SAMPLE: PaginatedResult<ProductDto> = {
       price: { amount: 45000, currency: 'GTQ' },
       stock: 5,
       images: [],
+      tryOnImageUrl: null,
       active: true,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',

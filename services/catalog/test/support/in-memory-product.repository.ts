@@ -67,6 +67,7 @@ export class InMemoryProductRepository implements ProductRepository {
       price: p.price,
       stock,
       images: p.images,
+      tryOnImageUrl: p.tryOnImageUrl,
       active: p.active,
       createdAt: p.createdAt,
       updatedAt: new Date(),
@@ -87,6 +88,29 @@ export class InMemoryProductRepository implements ProductRepository {
       price: p.price,
       stock: p.stock,
       images: [...p.images, url],
+      tryOnImageUrl: p.tryOnImageUrl,
+      active: p.active,
+      createdAt: p.createdAt,
+      updatedAt: new Date(),
+    });
+    return this.products[index];
+  }
+
+  async setTryOnImage(id: string, url: string): Promise<Product | null> {
+    const index = this.products.findIndex((p) => p.id === id);
+    if (index < 0) return null;
+    const p = this.products[index];
+    this.products[index] = Product.fromPersistence({
+      id: p.id,
+      sku: p.sku,
+      name: p.name,
+      description: p.description,
+      type: p.type,
+      brand: p.brand,
+      price: p.price,
+      stock: p.stock,
+      images: p.images,
+      tryOnImageUrl: url,
       active: p.active,
       createdAt: p.createdAt,
       updatedAt: new Date(),

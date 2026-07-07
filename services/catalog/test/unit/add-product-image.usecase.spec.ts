@@ -2,6 +2,7 @@ import { AddProductImageUseCase } from '../../src/catalog/application/use-cases/
 import { ImageStorage } from '../../src/catalog/application/ports/image-storage';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { ProductNotFoundError } from '../../src/catalog/domain/errors/product-not-found.error';
+import { ProductRepository } from '../../src/catalog/domain/repositories/product.repository';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
 import { Sku } from '../../src/catalog/domain/value-objects/sku.vo';
 import { InMemoryProductRepository } from '../support/in-memory-product.repository';
@@ -41,6 +42,18 @@ describe('AddProductImageUseCase', () => {
     const useCase = new AddProductImageUseCase(new InMemoryProductRepository(), storage);
     await expect(
       useCase.execute('nope', { buffer: Buffer.from('x'), filename: 'a.jpg', contentType: 'image/jpeg' }),
+    ).rejects.toBeInstanceOf(ProductNotFoundError);
+  });
+
+  it('lanza ProductNotFoundError si el producto desaparece antes de añadir la imagen', async () => {
+    const product = seedProduct();
+    const repo = {
+      findById: async () => product,
+      appendImage: async () => null,
+    } as unknown as ProductRepository;
+    const useCase = new AddProductImageUseCase(repo, storage);
+    await expect(
+      useCase.execute(product.id, { buffer: Buffer.from('x'), filename: 'a.jpg', contentType: 'image/jpeg' }),
     ).rejects.toBeInstanceOf(ProductNotFoundError);
   });
 });

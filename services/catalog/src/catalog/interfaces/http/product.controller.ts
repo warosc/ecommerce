@@ -20,6 +20,7 @@ import { AddProductImageUseCase } from '../../application/use-cases/add-product-
 import { CreateProductUseCase } from '../../application/use-cases/create-product/create-product.usecase';
 import { GetProductUseCase } from '../../application/use-cases/get-product/get-product.usecase';
 import { ListProductsUseCase } from '../../application/use-cases/list-products/list-products.usecase';
+import { SetProductTryOnImageUseCase } from '../../application/use-cases/set-try-on-image/set-try-on-image.usecase';
 import { CreateProductRequestDto } from './dto/create-product.request.dto';
 import { ListProductsQueryDto } from './dto/list-products.query.dto';
 import { toProductDto } from './dto/product.response.dto';
@@ -31,6 +32,7 @@ export class ProductController {
     private readonly getProduct: GetProductUseCase,
     private readonly createProduct: CreateProductUseCase,
     private readonly addProductImage: AddProductImageUseCase,
+    private readonly setTryOnImage: SetProductTryOnImageUseCase,
   ) {}
 
   @Get()
@@ -80,6 +82,35 @@ export class ProductController {
       throw new BadRequestException('El archivo debe ser una imagen.');
     }
     const product = await this.addProductImage.execute(id, {
+      buffer: file.buffer,
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
+    return toProductDto(product);
+  }
+
+  /**
+   * Sube la montura del probador virtual (una por producto, reemplaza la
+   * anterior). Debe ser PNG o WebP para conservar la transparencia; un JPG
+   * pondría un fondo opaco sobre la cara en el probador.
+   */
+  @Post(':id/try-on-image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  async uploadTryOnImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ): Promise<ProductDto> {
+    if (!file) {
+      throw new BadRequestException('Falta el archivo "file".');
+    }
+    if (file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+      throw new BadRequestException(
+        'La montura del probador debe ser PNG o WebP con fondo transparente.',
+      );
+    }
+    const product = await this.setTryOnImage.execute(id, {
       buffer: file.buffer,
       filename: file.originalname,
       contentType: file.mimetype,

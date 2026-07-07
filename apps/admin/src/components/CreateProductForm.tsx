@@ -50,6 +50,14 @@ export function CreateProductForm() {
         Imagen (opcional)
         <input name="image" type="file" accept="image/*" />
       </label>
+      <label>
+        Montura para el probador (opcional)
+        <input name="tryOnImage" type="file" accept="image/png,image/webp" />
+        <small className="hint">
+          PNG o WebP con fondo transparente, vista frontal. Se superpone sobre la
+          cara en el probador virtual.
+        </small>
+      </label>
 
       <button className="btn btn--primary" type="submit" disabled={pending}>
         {pending ? 'Creando…' : 'Crear producto'}

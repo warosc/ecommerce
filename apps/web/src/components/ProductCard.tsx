@@ -1,4 +1,5 @@
 import type { ProductDto, ProductType } from '@optimus/contracts';
+import Link from 'next/link';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { formatPrice } from '@/lib/format';
 
@@ -34,6 +35,11 @@ export function ProductCard({ product }: { product: ProductDto }) {
           </span>
         </div>
         {product.active ? <AddToCartButton sku={product.sku} /> : null}
+        {product.tryOnImageUrl ? (
+          <Link className="card__tryon" href={`/probador?frame=${product.id}`}>
+            🕶 Probar
+          </Link>
+        ) : null}
       </div>
     </article>
   );

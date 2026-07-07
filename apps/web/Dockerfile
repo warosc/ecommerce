@@ -25,6 +25,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY tsconfig.base.json ./
 COPY packages/contracts ./packages/contracts
 COPY apps/web ./apps/web
+# Assets del probador virtual (WASM de MediaPipe + modelo face_landmarker),
+# self-hosted en public/ para no depender de un CDN externo en runtime.
+RUN node apps/web/scripts/copy-tryon-assets.mjs
 RUN pnpm --filter @optimus/web build
 
 # ---- runner: sirve el output standalone (base limpia, sin ajustes TLS de build) ----

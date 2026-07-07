@@ -40,6 +40,12 @@ export interface ProductDto {
   price: Money;
   stock: number;
   images: string[];
+  /**
+   * URL pública de la imagen para el **probador virtual** (montura en PNG/WebP
+   * con fondo transparente, vista frontal). `null` si el producto no tiene
+   * montura para probar. La superpone el probador AR sobre la cara.
+   */
+  tryOnImageUrl: string | null;
   active: boolean;
   /** Fecha ISO 8601. */
   createdAt: string;

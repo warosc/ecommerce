@@ -80,6 +80,19 @@ a {
   font-weight: 600;
 }
 
+.hero__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta--ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;
@@ -276,4 +289,174 @@ a {
   border-radius: 0.5rem;
   font-size: 0.95rem;
   font-weight: 400;
+}
+
+/* ── Botones y avisos genéricos ─────────────────────────────── */
+.btn {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.alert {
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.alert--err {
+  background: #fee2e2;
+  color: var(--danger);
+}
+
+.alert--ok {
+  background: #dcfce7;
+  color: var(--ok);
+}
+
+.crumbs {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.crumbs a {
+  color: var(--primary);
+}
+
+.lede {
+  color: var(--muted);
+  max-width: 640px;
+}
+
+/* ── Probador virtual ───────────────────────────────────────── */
+.tryon {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .tryon {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tryon__stage {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #0f172a;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.tryon__video,
+.tryon__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tryon__video {
+  visibility: hidden;
+}
+
+.tryon__canvas {
+  z-index: 1;
+}
+
+.tryon__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.tryon__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tryon__frames {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 0.5rem;
+}
+
+.tryon__frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.tryon__frame.is-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+  color: var(--text);
+}
+
+.tryon__frame img {
+  width: 100%;
+  height: 40px;
+  object-fit: contain;
+  background: #f1f5f9;
+  border-radius: 0.3rem;
+}
+
+.tryon__slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.tryon__slider input {
+  width: 100%;
+}
+
+.card__tryon {
+  margin-top: 0.5rem;
+  text-align: center;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary);
 }

@@ -13,6 +13,7 @@ export function toProductDto(product: Product): ProductDto {
     price: { amount: product.price.amount, currency: product.price.currency },
     stock: product.stock,
     images: product.images,
+    tryOnImageUrl: product.tryOnImageUrl,
     active: product.active,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),

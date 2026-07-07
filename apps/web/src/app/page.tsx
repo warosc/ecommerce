@@ -7,9 +7,14 @@ export default function HomePage() {
       <p className="hero__subtitle">
         Monturas, lentes y accesorios para cuidar tu visión.
       </p>
-      <Link className="cta" href="/catalogo">
-        Ver catálogo
-      </Link>
+      <div className="hero__actions">
+        <Link className="cta" href="/catalogo">
+          Ver catálogo
+        </Link>
+        <Link className="cta cta--ghost" href="/probador">
+          Probador virtual
+        </Link>
+      </div>
     </main>
   );
 }

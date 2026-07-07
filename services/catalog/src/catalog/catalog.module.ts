@@ -6,6 +6,7 @@ import { AddProductImageUseCase } from './application/use-cases/add-product-imag
 import { CreateProductUseCase } from './application/use-cases/create-product/create-product.usecase';
 import { GetProductUseCase } from './application/use-cases/get-product/get-product.usecase';
 import { ListProductsUseCase } from './application/use-cases/list-products/list-products.usecase';
+import { SetProductTryOnImageUseCase } from './application/use-cases/set-try-on-image/set-try-on-image.usecase';
 import { UpdateProductStockUseCase } from './application/use-cases/update-product-stock/update-product-stock.usecase';
 import { PRODUCT_REPOSITORY } from './domain/repositories/product.repository';
 import { StockChangedConsumer } from './infrastructure/messaging/stock-changed.consumer';
@@ -31,6 +32,7 @@ import { ProductController } from './interfaces/http/product.controller';
     CreateProductUseCase,
     UpdateProductStockUseCase,
     AddProductImageUseCase,
+    SetProductTryOnImageUseCase,
     StockChangedConsumer,
   ],
 })
