@@ -46,6 +46,10 @@ export function CreateProductForm() {
         Stock
         <input name="stock" type="number" min="0" defaultValue={0} />
       </label>
+      <label>
+        Imagen (opcional)
+        <input name="image" type="file" accept="image/*" />
+      </label>
 
       <button className="btn btn--primary" type="submit" disabled={pending}>
         {pending ? 'Creando…' : 'Crear producto'}

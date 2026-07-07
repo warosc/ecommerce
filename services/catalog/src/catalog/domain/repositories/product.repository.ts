@@ -30,4 +30,6 @@ export interface ProductRepository {
   create(product: Product): Promise<Product>;
   /** Actualiza el stock (read-model) de un SKU. Usado por eventos de Inventario. */
   updateStockBySku(sku: string, stock: number): Promise<void>;
+  /** Añade una URL de imagen al producto; devuelve el producto o null si no existe. */
+  appendImage(id: string, url: string): Promise<Product | null>;
 }

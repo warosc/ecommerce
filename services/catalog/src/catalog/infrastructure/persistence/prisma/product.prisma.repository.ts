@@ -59,4 +59,14 @@ export class PrismaProductRepository implements ProductRepository {
   async updateStockBySku(sku: string, stock: number): Promise<void> {
     await this.prisma.product.updateMany({ where: { sku }, data: { stock } });
   }
+
+  async appendImage(id: string, url: string): Promise<Product | null> {
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) return null;
+    const record = await this.prisma.product.update({
+      where: { id },
+      data: { images: { push: url } },
+    });
+    return ProductMapper.toDomain(record);
+  }
 }

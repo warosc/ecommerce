@@ -7,6 +7,8 @@ import { ListProductsUseCase } from '../../src/catalog/application/use-cases/lis
 import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';
 import { RolesGuard } from '../../src/auth/roles.guard';
 import { EVENT_PUBLISHER } from '../../src/catalog/application/ports/event-publisher';
+import { IMAGE_STORAGE } from '../../src/catalog/application/ports/image-storage';
+import { AddProductImageUseCase } from '../../src/catalog/application/use-cases/add-product-image/add-product-image.usecase';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { PRODUCT_REPOSITORY } from '../../src/catalog/domain/repositories/product.repository';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
@@ -36,8 +38,16 @@ describe('Products (e2e)', () => {
         ListProductsUseCase,
         GetProductUseCase,
         CreateProductUseCase,
+        AddProductImageUseCase,
         { provide: PRODUCT_REPOSITORY, useValue: new InMemoryProductRepository([seeded]) },
         { provide: EVENT_PUBLISHER, useValue: { publish: async () => undefined } },
+        {
+          provide: IMAGE_STORAGE,
+          useValue: {
+            upload: async (prefix: string, input: { filename: string }) =>
+              `http://minio.test/${prefix}/${input.filename}`,
+          },
+        },
       ],
     })
       // La autenticación (Keycloak) se prueba por separado (unit RolesGuard +
@@ -153,6 +163,29 @@ describe('Products (e2e)', () => {
         .send({ ...valid, sku: '!!' })
         .expect(400);
       expect(res.body.error).toBe('INVALID_PRODUCT');
+    });
+  });
+
+  describe('POST /api/products/:id/images', () => {
+    it('sube una imagen y añade su URL al producto (201)', async () => {
+      const res = await request(app.getHttpServer())
+        .post(`/api/products/${seeded.id}/images`)
+        .attach('file', Buffer.from('imagen-fake'), { filename: 'gafas.png', contentType: 'image/png' })
+        .expect(201);
+      expect(res.body.images.some((u: string) => u.includes('gafas.png'))).toBe(true);
+    });
+
+    it('rechaza si falta el archivo (400)', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/products/${seeded.id}/images`)
+        .expect(400);
+    });
+
+    it('devuelve 404 si el producto no existe', async () => {
+      await request(app.getHttpServer())
+        .post('/api/products/no-existe/images')
+        .attach('file', Buffer.from('x'), { filename: 'a.png', contentType: 'image/png' })
+        .expect(404);
     });
   });
 });

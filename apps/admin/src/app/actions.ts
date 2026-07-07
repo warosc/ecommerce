@@ -48,7 +48,26 @@ export async function createProduct(
     });
 
     if (res.status === 201) {
-      const created = (await res.json()) as { sku: string; name: string };
+      const created = (await res.json()) as { id: string; sku: string; name: string };
+
+      // Subida opcional de imagen a MinIO (vía el endpoint del Catálogo).
+      const image = formData.get('image');
+      if (image instanceof File && image.size > 0) {
+        const fd = new FormData();
+        fd.append('file', image, image.name);
+        const up = await fetch(`${CATALOG_API}/products/${created.id}/images`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        if (!up.ok) {
+          return {
+            ok: true,
+            message: `Producto ${created.sku} creado, pero la imagen falló (HTTP ${up.status}).`,
+          };
+        }
+      }
+
       return { ok: true, message: `Producto creado: ${created.sku} — ${created.name}` };
     }
     if (res.status === 401) {
