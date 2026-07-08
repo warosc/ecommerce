@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 
 export interface CreateProductState {
@@ -97,6 +98,60 @@ export async function createProduct(
     }
     if (res.status === 409) {
       return { ok: false, message: 'Ya existe un producto con ese SKU (409).' };
+    }
+    const detail = await res.text();
+    return { ok: false, message: `Error ${res.status}: ${detail}` };
+  } catch (error) {
+    return {
+      ok: false,
+      message: `No se pudo contactar la API de Catálogo: ${(error as Error).message}`,
+    };
+  }
+}
+
+/**
+ * Server action: fija la montura del probador de un producto **existente**.
+ * Recibe el PNG transparente (ya recortado en el navegador) y lo reenvía al
+ * endpoint protegido del Catálogo con el Bearer del usuario. El token no se
+ * expone al navegador (la llamada ocurre en el servidor).
+ */
+export async function setTryOnImageAction(
+  productId: string,
+  _prevState: CreateProductState,
+  formData: FormData,
+): Promise<CreateProductState> {
+  const session = await auth();
+  const token = session?.accessToken;
+  if (!token) {
+    return { ok: false, message: 'No autenticado. Inicia sesión de nuevo.' };
+  }
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, message: 'Falta la imagen recortada.' };
+  }
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file, file.name || 'tryon.png');
+    const res = await fetch(`${CATALOG_API}/products/${productId}/try-on-image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+
+    if (res.ok) {
+      revalidatePath('/productos');
+      return { ok: true, message: 'Montura del probador guardada.' };
+    }
+    if (res.status === 401) {
+      return { ok: false, message: 'Sesión no válida (401). Vuelve a iniciar sesión.' };
+    }
+    if (res.status === 403) {
+      return { ok: false, message: 'No tienes permisos de administrador (403).' };
+    }
+    if (res.status === 404) {
+      return { ok: false, message: 'El producto ya no existe (404).' };
     }
     const detail = await res.text();
     return { ok: false, message: `Error ${res.status}: ${detail}` };

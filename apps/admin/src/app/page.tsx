@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { auth, signIn, signOut } from '@/auth';
 import { CreateProductForm } from '@/components/CreateProductForm';
 
@@ -30,6 +31,10 @@ export default async function Home() {
       <header className="topbar">
         <span className="brand">Optimus Admin</span>
         <div className="topbar__right">
+          <nav className="adminnav">
+            <Link href="/">Crear producto</Link>
+            <Link href="/productos">Productos</Link>
+          </nav>
           <span className="muted">{session.user?.name ?? session.user?.email}</span>
           <form
             action={async () => {
@@ -48,6 +53,8 @@ export default async function Home() {
         <h2>Crear producto</h2>
         <p className="muted">
           Requiere rol <code>admin</code>. Si no lo tienes, la API responderá 403.
+          Para dar montura de probador a productos existentes, ve a{' '}
+          <Link href="/productos">Productos</Link>.
         </p>
         <CreateProductForm />
       </section>
