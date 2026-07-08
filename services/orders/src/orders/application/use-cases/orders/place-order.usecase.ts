@@ -62,7 +62,7 @@ export class PlaceOrderUseCase {
         unitPriceAmount: l.unitPriceAmount,
         quantity: l.quantity,
       })),
-      cart.currency,
+      { currency: cart.currency, channel: 'WEB' },
     );
 
     const saved = await this.orderRepository.create(order);

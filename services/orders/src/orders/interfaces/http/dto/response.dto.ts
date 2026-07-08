@@ -22,6 +22,8 @@ export function toOrderDto(order: Order): OrderDto {
   return {
     id: order.id,
     status: order.status,
+    channel: order.channel,
+    paymentMethod: order.paymentMethod,
     customer: {
       name: order.customer.name,
       email: order.customer.email,

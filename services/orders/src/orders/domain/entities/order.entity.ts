@@ -3,6 +3,8 @@ import { InvalidOrderError } from '../errors';
 import { Customer } from '../value-objects/customer.vo';
 
 export type OrderStatus = 'PLACED';
+export type OrderChannel = 'WEB' | 'POS';
+export type PaymentMethod = 'CASH' | 'CARD';
 
 export interface OrderLineProps {
   sku: string;
@@ -33,6 +35,8 @@ export class OrderLine {
 export interface OrderProps {
   id: string;
   status: OrderStatus;
+  channel: OrderChannel;
+  paymentMethod: PaymentMethod | null;
   customer: Customer;
   lines: OrderLine[];
   totalAmount: number;
@@ -40,11 +44,21 @@ export interface OrderProps {
   createdAt: Date;
 }
 
+export interface CreateOrderOptions {
+  currency?: string;
+  channel?: OrderChannel;
+  paymentMethod?: PaymentMethod | null;
+}
+
 /** Agregado raíz del contexto Pedidos. */
 export class Order {
   private constructor(private readonly props: OrderProps) {}
 
-  static create(customer: Customer, lines: OrderLineProps[], currency = 'GTQ'): Order {
+  static create(
+    customer: Customer,
+    lines: OrderLineProps[],
+    options: CreateOrderOptions = {},
+  ): Order {
     if (!lines || lines.length === 0) {
       throw new InvalidOrderError('Un pedido debe tener al menos una línea.');
     }
@@ -58,10 +72,12 @@ export class Order {
     return new Order({
       id: randomUUID(),
       status: 'PLACED',
+      channel: options.channel ?? 'WEB',
+      paymentMethod: options.paymentMethod ?? null,
       customer,
       lines: orderLines,
       totalAmount,
-      currency,
+      currency: options.currency ?? 'GTQ',
       createdAt: new Date(),
     });
   }
@@ -75,6 +91,12 @@ export class Order {
   }
   get status(): OrderStatus {
     return this.props.status;
+  }
+  get channel(): OrderChannel {
+    return this.props.channel;
+  }
+  get paymentMethod(): PaymentMethod | null {
+    return this.props.paymentMethod;
   }
   get customer(): Customer {
     return this.props.customer;

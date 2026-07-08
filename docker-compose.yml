@@ -271,6 +271,7 @@ services:
     depends_on:
       - keycloak
       - catalog-api
+      - orders-api
     environment:
       NODE_ENV: production
       AUTH_SECRET: ${AUTH_SECRET}
@@ -283,6 +284,7 @@ services:
       AUTH_KEYCLOAK_SECRET: ${AUTH_KEYCLOAK_SECRET}
       AUTH_KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
       CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
+      ORDERS_API_INTERNAL: ${ORDERS_API_INTERNAL}
     # El contenedor resuelve auth.localhost hacia Traefik (en el host) para el
     # descubrimiento OIDC y el intercambio de tokens server-side.
     extra_hosts:

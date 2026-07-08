@@ -13,15 +13,27 @@ enum OrderStatus {
   PLACED
 }
 
+enum OrderChannel {
+  WEB
+  POS
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+}
+
 model Order {
-  id            String      @id @default(uuid())
-  status        OrderStatus @default(PLACED)
+  id            String         @id @default(uuid())
+  status        OrderStatus    @default(PLACED)
+  channel       OrderChannel   @default(WEB)
+  paymentMethod PaymentMethod?
   customerName  String
   customerEmail String
   customerPhone String?
   totalAmount   Int
-  currency      String      @default("GTQ")
-  createdAt     DateTime    @default(now())
+  currency      String         @default("GTQ")
+  createdAt     DateTime       @default(now())
   lines         OrderLine[]
 
   @@map("orders")

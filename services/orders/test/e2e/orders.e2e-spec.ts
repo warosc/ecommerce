@@ -10,6 +10,7 @@ import { RemoveFromCartUseCase } from '../../src/orders/application/use-cases/ca
 import { GetOrderUseCase } from '../../src/orders/application/use-cases/orders/get-order.usecase';
 import { ListOrdersUseCase } from '../../src/orders/application/use-cases/orders/list-orders.usecase';
 import { PlaceOrderUseCase } from '../../src/orders/application/use-cases/orders/place-order.usecase';
+import { PlacePosOrderUseCase } from '../../src/orders/application/use-cases/orders/place-pos-order.usecase';
 import { CART_REPOSITORY } from '../../src/orders/domain/repositories/cart.repository';
 import { ORDER_REPOSITORY } from '../../src/orders/domain/repositories/order.repository';
 import { DomainExceptionFilter } from '../../src/orders/interfaces/http/filters/domain-exception.filter';
@@ -45,6 +46,7 @@ describe('Orders (e2e)', () => {
         AddToCartUseCase,
         RemoveFromCartUseCase,
         PlaceOrderUseCase,
+        PlacePosOrderUseCase,
         GetOrderUseCase,
         ListOrdersUseCase,
         { provide: CART_REPOSITORY, useValue: new InMemoryCartRepository() },
@@ -138,5 +140,53 @@ describe('Orders (e2e)', () => {
 
   it('GET pedido inexistente -> 404', async () => {
     await request(server()).get('/api/orders/nope').expect(404);
+  });
+
+  describe('POST /api/orders/pos (venta en tienda)', () => {
+    it('crea la venta (201), canal POS y publica order.placed', async () => {
+      const res = await request(server())
+        .post('/api/orders/pos')
+        .send({
+          lines: [
+            { sku: 'FR-1', quantity: 2 },
+            { sku: 'LN-1', quantity: 1 },
+          ],
+          paymentMethod: 'CASH',
+        })
+        .expect(201);
+      expect(res.body.channel).toBe('POS');
+      expect(res.body.paymentMethod).toBe('CASH');
+      expect(res.body.totalAmount).toBe(45000 * 2 + 20000);
+      expect(res.body.customer.name).toBe('Cliente de mostrador');
+      expect(publisher.calls).toHaveLength(1);
+    });
+
+    it('rechaza método de pago inválido -> 400', async () => {
+      await request(server())
+        .post('/api/orders/pos')
+        .send({ lines: [{ sku: 'FR-1', quantity: 1 }], paymentMethod: 'BITCOIN' })
+        .expect(400);
+    });
+
+    it('rechaza venta sin líneas -> 400', async () => {
+      await request(server())
+        .post('/api/orders/pos')
+        .send({ lines: [], paymentMethod: 'CASH' })
+        .expect(400);
+    });
+
+    it('SKU inexistente -> 404', async () => {
+      await request(server())
+        .post('/api/orders/pos')
+        .send({ lines: [{ sku: 'NOPE', quantity: 1 }], paymentMethod: 'CARD' })
+        .expect(404);
+    });
+
+    it('stock insuficiente -> 409', async () => {
+      await request(server())
+        .post('/api/orders/pos')
+        .send({ lines: [{ sku: 'LN-1', quantity: 5 }], paymentMethod: 'CASH' })
+        .expect(409);
+    });
   });
 });

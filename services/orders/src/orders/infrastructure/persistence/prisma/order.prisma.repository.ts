@@ -17,6 +17,8 @@ export class PrismaOrderRepository implements OrderRepository {
       data: {
         id: order.id,
         status: OrderMapper.statusToPersistence(order.status),
+        channel: order.channel,
+        paymentMethod: order.paymentMethod,
         customerName: order.customer.name,
         customerEmail: order.customer.email,
         customerPhone: order.customer.phone ?? null,

@@ -52,6 +52,7 @@ export default async function ProductosPage() {
         <nav className="adminnav">
           <Link href="/">Crear producto</Link>
           <Link href="/productos">Productos</Link>
+          <Link href="/pos">Punto de venta</Link>
         </nav>
       </header>
 

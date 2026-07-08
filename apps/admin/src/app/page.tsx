@@ -34,6 +34,7 @@ export default async function Home() {
           <nav className="adminnav">
             <Link href="/">Crear producto</Link>
             <Link href="/productos">Productos</Link>
+            <Link href="/pos">Punto de venta</Link>
           </nav>
           <span className="muted">{session.user?.name ?? session.user?.email}</span>
           <form

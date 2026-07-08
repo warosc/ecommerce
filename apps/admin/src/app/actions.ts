@@ -1,5 +1,6 @@
 'use server';
 
+import type { OrderDto, PaymentMethod } from '@optimus/contracts';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 
@@ -10,6 +11,8 @@ export interface CreateProductState {
 
 const CATALOG_API =
   process.env.CATALOG_API_INTERNAL ?? 'http://catalog-api:3001/api';
+const ORDERS_API =
+  process.env.ORDERS_API_INTERNAL ?? 'http://orders-api:3005/api';
 
 /**
  * Server action: crea un producto llamando al POST protegido del Catálogo,
@@ -105,6 +108,69 @@ export async function createProduct(
     return {
       ok: false,
       message: `No se pudo contactar la API de Catálogo: ${(error as Error).message}`,
+    };
+  }
+}
+
+export interface PosSaleResult {
+  ok: boolean;
+  message: string;
+  order?: OrderDto;
+}
+
+export interface PosSaleInput {
+  lines: { sku: string; quantity: number }[];
+  paymentMethod: PaymentMethod;
+  customer?: { name: string; email: string; phone?: string };
+}
+
+/**
+ * Server action: registra una venta de mostrador (POS) en el servicio de Pedidos,
+ * reenviando el Bearer del vendedor. Devuelve el pedido creado (para el ticket).
+ */
+export async function placePosSaleAction(input: PosSaleInput): Promise<PosSaleResult> {
+  const session = await auth();
+  const token = session?.accessToken;
+  if (!token) {
+    return { ok: false, message: 'No autenticado. Inicia sesión de nuevo.' };
+  }
+  if (!input.lines || input.lines.length === 0) {
+    return { ok: false, message: 'La venta no tiene productos.' };
+  }
+
+  try {
+    const res = await fetch(`${ORDERS_API}/orders/pos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+      cache: 'no-store',
+    });
+
+    if (res.status === 201) {
+      const order = (await res.json()) as OrderDto;
+      return { ok: true, message: `Venta registrada: ${order.id}`, order };
+    }
+    if (res.status === 401) {
+      return { ok: false, message: 'Sesión no válida (401). Vuelve a iniciar sesión.' };
+    }
+    if (res.status === 403) {
+      return { ok: false, message: 'No tienes permiso de venta (403).' };
+    }
+    if (res.status === 404) {
+      return { ok: false, message: 'Algún producto no existe o no está disponible (404).' };
+    }
+    if (res.status === 409) {
+      return { ok: false, message: 'Stock insuficiente para algún producto (409).' };
+    }
+    const detail = await res.text();
+    return { ok: false, message: `Error ${res.status}: ${detail}` };
+  } catch (error) {
+    return {
+      ok: false,
+      message: `No se pudo contactar la API de Pedidos: ${(error as Error).message}`,
     };
   }
 }

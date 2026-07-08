@@ -183,6 +183,12 @@ export interface AddCartItemRequest {
 
 export type OrderStatus = 'PLACED';
 
+/** Canal por el que se originó el pedido. */
+export type OrderChannel = 'WEB' | 'POS';
+
+/** Método de pago (usado por el POS; el checkout web queda pendiente de Fase 5). */
+export type PaymentMethod = 'CASH' | 'CARD';
+
 export interface CustomerDto {
   name: string;
   email: string;
@@ -201,6 +207,10 @@ export interface OrderLineDto {
 export interface OrderDto {
   id: string;
   status: OrderStatus;
+  /** Canal de origen: 'WEB' (checkout) o 'POS' (venta en tienda). */
+  channel: OrderChannel;
+  /** Método de pago; `null` en pedidos web aún no cobrados. */
+  paymentMethod: PaymentMethod | null;
   customer: CustomerDto;
   lines: OrderLineDto[];
   totalAmount: number;
@@ -212,4 +222,20 @@ export interface OrderDto {
 export interface PlaceOrderRequest {
   cartId: string;
   customer: CustomerDto;
+}
+
+/** Línea de una venta POS (el precio y nombre los resuelve el backend por SKU). */
+export interface PosOrderLineInput {
+  sku: string;
+  quantity: number;
+}
+
+/**
+ * Cuerpo de `POST /api/orders/pos` (venta en tienda). El cliente es opcional
+ * (venta de mostrador); si no se indica, el backend usa un cliente genérico.
+ */
+export interface PlacePosOrderRequest {
+  lines: PosOrderLineInput[];
+  paymentMethod: PaymentMethod;
+  customer?: CustomerDto;
 }

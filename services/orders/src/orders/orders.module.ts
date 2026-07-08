@@ -9,6 +9,7 @@ import { RemoveFromCartUseCase } from './application/use-cases/cart/remove-from-
 import { GetOrderUseCase } from './application/use-cases/orders/get-order.usecase';
 import { ListOrdersUseCase } from './application/use-cases/orders/list-orders.usecase';
 import { PlaceOrderUseCase } from './application/use-cases/orders/place-order.usecase';
+import { PlacePosOrderUseCase } from './application/use-cases/orders/place-pos-order.usecase';
 import { CART_REPOSITORY } from './domain/repositories/cart.repository';
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository';
 import { HttpCatalogGateway } from './infrastructure/gateways/http-catalog.gateway';
@@ -34,6 +35,7 @@ import { OrdersController } from './interfaces/http/orders.controller';
     GetCartUseCase,
     RemoveFromCartUseCase,
     PlaceOrderUseCase,
+    PlacePosOrderUseCase,
     GetOrderUseCase,
     ListOrdersUseCase,
   ],

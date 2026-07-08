@@ -3,7 +3,13 @@ import {
   OrderLine as PrismaOrderLine,
   OrderStatus as PrismaOrderStatus,
 } from '@prisma/client';
-import { Order, OrderLine, OrderStatus } from '../../../domain/entities/order.entity';
+import {
+  Order,
+  OrderChannel,
+  OrderLine,
+  OrderStatus,
+  PaymentMethod,
+} from '../../../domain/entities/order.entity';
 import { Customer } from '../../../domain/value-objects/customer.vo';
 
 type OrderWithLines = PrismaOrder & { lines: PrismaOrderLine[] };
@@ -13,6 +19,8 @@ export class OrderMapper {
     return Order.fromPersistence({
       id: record.id,
       status: record.status as OrderStatus,
+      channel: record.channel as OrderChannel,
+      paymentMethod: (record.paymentMethod as PaymentMethod | null) ?? null,
       customer: Customer.create(
         record.customerName,
         record.customerEmail,
