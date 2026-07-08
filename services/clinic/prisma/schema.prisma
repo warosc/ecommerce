@@ -1,0 +1,66 @@
+// Prisma schema — microservicio Clínico (Pacientes + Agenda) · Óptica Optimus
+// Datos sensibles: la graduación y las notas se guardan CIFRADAS (AES-256-GCM)
+// a nivel de aplicación; en la BD solo hay texto cifrado.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  birthDate DateTime?
+  /// Graduación óptica (JSON) cifrada con AES-256-GCM. Nunca en claro en la BD.
+  prescriptionCipher String?
+  /// Notas clínicas cifradas.
+  notesCipher        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([lastName])
+  @@map("patients")
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  patientId   String
+  scheduledAt DateTime
+  reason      String
+  status      AppointmentStatus @default(SCHEDULED)
+  createdAt   DateTime          @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([scheduledAt])
+  @@map("appointments")
+}
+
+/// Auditoría append-only de accesos y cambios sobre datos clínicos.
+model AuditLog {
+  id         String   @id @default(uuid())
+  actor      String
+  action     String
+  entityType String
+  entityId   String
+  at         DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@map("clinic_audit")
+}

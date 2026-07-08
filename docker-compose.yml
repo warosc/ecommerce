@@ -239,6 +239,40 @@ services:
     networks:
       - optimus-net
 
+  clinic-api:
+    build:
+      context: .
+      dockerfile: services/clinic/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${CLINIC_DATABASE_URL}
+      CLINIC_PORT: '3007'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      # Clave de cifrado en reposo de los datos clínicos (32 bytes hex/base64).
+      CLINIC_ENCRYPTION_KEY: ${CLINIC_ENCRYPTION_KEY}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3007/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.clinic.rule=Host(`clinic.localhost`)
+      - traefik.http.routers.clinic.entrypoints=web
+      - traefik.http.services.clinic.loadbalancer.server.port=3007
+    ports:
+      - '${CLINIC_PORT:-3007}:3007'
+    networks:
+      - optimus-net
+
   web:
     build:
       context: .

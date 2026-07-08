@@ -224,6 +224,97 @@ export interface PlaceOrderRequest {
   customer: CustomerDto;
 }
 
+// ─────────────────────────── Clínica: Pacientes + Agenda (Fase 7) ───────────
+// Datos sensibles. La graduación y las notas viajan en claro por la API (TLS en
+// prod) pero se almacenan CIFRADAS en reposo. Acceso restringido por rol.
+
+/** Graduación de un ojo (dioptrías). Todos opcionales según el caso. */
+export interface EyePrescription {
+  /** Esfera. */
+  sphere?: number;
+  /** Cilindro. */
+  cylinder?: number;
+  /** Eje (0–180). */
+  axis?: number;
+  /** Adición (para progresivos/bifocales). */
+  add?: number;
+}
+
+/** Graduación óptica completa. `od` = ojo derecho, `os` = ojo izquierdo. */
+export interface Prescription {
+  od?: EyePrescription;
+  os?: EyePrescription;
+  /** Distancia interpupilar (mm). */
+  pd?: number;
+}
+
+/** Paciente tal como lo devuelve la API (incluye datos clínicos descifrados). */
+export interface PatientDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  email: string | null;
+  /** Fecha ISO 8601 (solo fecha relevante). */
+  birthDate: string | null;
+  prescription: Prescription | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Resumen de paciente para listados (sin datos clínicos). */
+export interface PatientSummaryDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  createdAt: string;
+}
+
+/** Cuerpo de `POST /api/patients`. */
+export interface CreatePatientRequest {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  email?: string;
+  birthDate?: string;
+  prescription?: Prescription;
+  notes?: string;
+}
+
+/** Cuerpo de `PUT /api/patients/:id/clinical` (graduación + notas). */
+export interface UpdateClinicalRequest {
+  prescription?: Prescription;
+  notes?: string;
+}
+
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+
+/** Cita de la agenda. */
+export interface AppointmentDto {
+  id: string;
+  patientId: string;
+  patientName: string;
+  /** Fecha/hora ISO 8601. */
+  scheduledAt: string;
+  reason: string;
+  status: AppointmentStatus;
+  createdAt: string;
+}
+
+/** Cuerpo de `POST /api/appointments`. */
+export interface CreateAppointmentRequest {
+  patientId: string;
+  scheduledAt: string;
+  reason: string;
+}
+
+/** Cuerpo de `PATCH /api/appointments/:id/status`. */
+export interface UpdateAppointmentStatusRequest {
+  status: AppointmentStatus;
+}
+
 /** Línea de una venta POS (el precio y nombre los resuelve el backend por SKU). */
 export interface PosOrderLineInput {
   sku: string;

@@ -3,3 +3,4 @@
 -- microservicios (una base de datos por servicio).
 CREATE DATABASE optimus_inventory;
 CREATE DATABASE optimus_orders;
+CREATE DATABASE optimus_clinic;
