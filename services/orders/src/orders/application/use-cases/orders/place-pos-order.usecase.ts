@@ -85,6 +85,14 @@ export class PlacePosOrderUseCase {
 
     const event: OrderPlacedEvent = {
       orderId: saved.id,
+      channel: saved.channel,
+      customer: {
+        name: saved.customer.name,
+        email: saved.customer.email,
+        phone: saved.customer.phone,
+      },
+      totalAmount: saved.totalAmount,
+      currency: saved.currency,
       lines: saved.lines.map((l) => ({ sku: l.sku, quantity: l.quantity })),
     };
     await this.events.publish(ORDER_PLACED_ROUTING_KEY, event);

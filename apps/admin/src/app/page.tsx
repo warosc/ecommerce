@@ -37,6 +37,7 @@ export default async function Home() {
             <Link href="/pos">Punto de venta</Link>
             <Link href="/pacientes">Pacientes</Link>
             <Link href="/agenda">Agenda</Link>
+            <Link href="/clientes">Clientes</Link>
           </nav>
           <span className="muted">{session.user?.name ?? session.user?.email}</span>
           <form

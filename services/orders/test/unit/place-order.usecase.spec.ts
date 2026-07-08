@@ -41,6 +41,10 @@ describe('PlaceOrderUseCase', () => {
     expect(publisher.calls[0].key).toBe(ORDER_PLACED_ROUTING_KEY);
     expect(publisher.calls[0].payload).toEqual({
       orderId: order.id,
+      channel: 'WEB',
+      customer: { name: 'Ana', email: 'ana@mail.com' },
+      totalAmount: 90000,
+      currency: 'GTQ',
       lines: [{ sku: 'FR-1', quantity: 2 }],
     });
   });

@@ -152,6 +152,14 @@ export interface StockChangedEvent {
 /** Publicado por Pedidos al confirmarse un pedido (routing key `orders.order.placed`). */
 export interface OrderPlacedEvent {
   orderId: string;
+  /** Canal del pedido (WEB/POS). Enriquecido para el CRM. */
+  channel: OrderChannel;
+  /** Cliente del pedido (para construir su perfil en el CRM). */
+  customer: CustomerDto;
+  /** Importe total en centavos. */
+  totalAmount: number;
+  /** Moneda ISO 4217. */
+  currency: string;
   lines: Array<{ sku: string; quantity: number }>;
 }
 
@@ -313,6 +321,25 @@ export interface CreateAppointmentRequest {
 /** Cuerpo de `PATCH /api/appointments/:id/status`. */
 export interface UpdateAppointmentStatusRequest {
   status: AppointmentStatus;
+}
+
+// ─────────────────────────── CRM (Fase 8) ──────────────────────────────────
+
+/** Segmento de cliente derivado de su comportamiento de compra. */
+export type CustomerSegment = 'NUEVO' | 'RECURRENTE' | 'VIP' | 'INACTIVO';
+
+/** Perfil de cliente del CRM (agregado a partir de eventos de pedidos). */
+export interface CrmCustomerDto {
+  email: string;
+  name: string;
+  phone: string | null;
+  totalOrders: number;
+  /** Gasto total acumulado en centavos. */
+  totalSpentAmount: number;
+  currency: string;
+  firstOrderAt: string;
+  lastOrderAt: string;
+  segments: CustomerSegment[];
 }
 
 /** Línea de una venta POS (el precio y nombre los resuelve el backend por SKU). */

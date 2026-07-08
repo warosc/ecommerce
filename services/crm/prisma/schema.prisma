@@ -1,0 +1,27 @@
+// Prisma schema — microservicio CRM (perfiles de cliente) · Óptica Optimus
+// El perfil se agrega a partir de eventos de pedidos (orders.order.placed).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  /// El email identifica al cliente (clave natural).
+  email            String   @id
+  name             String
+  phone            String?
+  totalOrders      Int      @default(0)
+  /// Gasto total acumulado en centavos.
+  totalSpentAmount Int      @default(0)
+  currency         String   @default("GTQ")
+  firstOrderAt     DateTime
+  lastOrderAt      DateTime
+
+  @@index([lastOrderAt])
+  @@map("customers")
+}

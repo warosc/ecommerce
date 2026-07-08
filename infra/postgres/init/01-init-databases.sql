@@ -4,3 +4,4 @@
 CREATE DATABASE optimus_inventory;
 CREATE DATABASE optimus_orders;
 CREATE DATABASE optimus_clinic;
+CREATE DATABASE optimus_crm;

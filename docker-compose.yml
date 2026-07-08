@@ -310,6 +310,41 @@ services:
     networks:
       - optimus-net
 
+  crm-api:
+    build:
+      context: .
+      dockerfile: services/crm/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${CRM_DATABASE_URL}
+      CRM_PORT: '3009'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3009/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.crm.rule=Host(`crm.localhost`)
+      - traefik.http.routers.crm.entrypoints=web
+      - traefik.http.services.crm.loadbalancer.server.port=3009
+    ports:
+      - '${CRM_PORT:-3009}:3009'
+    networks:
+      - optimus-net
+
   web:
     build:
       context: .
@@ -344,6 +379,7 @@ services:
       - catalog-api
       - orders-api
       - clinic-api
+      - crm-api
     environment:
       NODE_ENV: production
       AUTH_SECRET: ${AUTH_SECRET}
@@ -358,6 +394,7 @@ services:
       CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
       ORDERS_API_INTERNAL: ${ORDERS_API_INTERNAL}
       CLINIC_API_INTERNAL: ${CLINIC_API_INTERNAL}
+      CRM_API_INTERNAL: ${CRM_API_INTERNAL}
     # El contenedor resuelve auth.localhost hacia Traefik (en el host) para el
     # descubrimiento OIDC y el intercambio de tokens server-side.
     extra_hosts:
