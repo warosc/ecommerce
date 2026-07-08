@@ -236,6 +236,21 @@ code {
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
 
+.uploader__rotate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  max-width: 320px;
+}
+
+.uploader__rotate input {
+  width: 100%;
+}
+
 .uploader__actions {
   display: flex;
   align-items: center;

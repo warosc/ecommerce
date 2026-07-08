@@ -8,6 +8,11 @@ como imagen del probador. Ver [ADR-0012](../../adr/0012-recorte-fondo-monturas.m
 - **Admin `/productos`**: lista el stock y, por producto, un uploader.
 - **Borrado de fondo en el navegador** (`@imgly/background-removal`): foto normal →
   PNG transparente → `POST /api/products/:id/try-on-image` (server action con Bearer).
+- **Auto-enderezado + auto-recorte**: tras quitar el fondo, se detecta el eje de la
+  montura (PCA sobre los píxeles opacos) y se **nivela**; se recorta a la caja de la
+  montura para centrarla. Slider de **rotación** (±45°) para afinar a mano. Así una
+  foto tomada en diagonal se guarda recta (si no, la montura sale inclinada en el
+  probador).
 - Reutiliza el endpoint y el campo `tryOnImageUrl` de la Fase 4.6.
 
 ## Componentes / archivos clave
