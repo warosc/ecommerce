@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela ejecuciones anteriores del mismo ref si llega una nueva.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Un job aislado por microservicio: cada servicio genera SU propio cliente
+  # Prisma (todos comparten @prisma/client, así que no pueden generarse a la vez
+  # en el mismo runner) y corre typecheck + tests unit/e2e (herméticos, in-memory).
+  services:
+    name: service (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [catalog, inventory, orders, clinic, crm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prisma generate (cliente del servicio)
+        run: pnpm --filter @optimus/${{ matrix.service }} exec prisma generate
+      - name: Typecheck
+        run: pnpm --filter @optimus/${{ matrix.service }} lint
+      - name: Unit tests + cobertura (≥90%)
+        run: pnpm --filter @optimus/${{ matrix.service }} test:cov
+      - name: E2E tests (in-memory)
+        run: pnpm --filter @optimus/${{ matrix.service }} test:e2e
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --filter @optimus/web exec tsc --noEmit -p tsconfig.json
+      - name: Unit tests (Vitest)
+        run: pnpm --filter @optimus/web test
+      - name: Build (Next standalone)
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:3001/api
+        run: pnpm --filter @optimus/web build
+
+  admin:
+    name: admin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --filter @optimus/admin exec tsc --noEmit -p tsconfig.json
+      - name: Build (Next standalone)
+        run: pnpm --filter @optimus/admin build

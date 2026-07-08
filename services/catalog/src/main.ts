@@ -7,6 +7,7 @@ import { DomainExceptionFilter } from './catalog/interfaces/http/filters/domain-
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
+  app.enableShutdownHooks();
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
