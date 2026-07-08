@@ -121,6 +121,40 @@ services:
     networks:
       - optimus-net
 
+  opensearch:
+    image: opensearchproject/opensearch:2.17.0
+    environment:
+      # Nodo único de desarrollo, seguridad desactivada y heap contenido para
+      # no saturar la memoria del host (WSL2).
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Optimus_dev_2026!
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearchdata:/usr/share/opensearch/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:9200/_cluster/health || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    ports:
+      - '9200:9200'
+    networks:
+      - optimus-net
+
   catalog-api:
     build:
       context: .
@@ -131,6 +165,8 @@ services:
       rabbitmq:
         condition: service_healthy
       minio:
+        condition: service_started
+      opensearch:
         condition: service_started
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -145,6 +181,7 @@ services:
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET: ${MINIO_BUCKET}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+      OPENSEARCH_NODE: ${OPENSEARCH_NODE}
     healthcheck:
       test:
         - CMD-SHELL
@@ -342,3 +379,4 @@ networks:
 volumes:
   pgdata:
   miniodata:
+  opensearchdata:

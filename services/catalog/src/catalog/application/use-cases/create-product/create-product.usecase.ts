@@ -10,6 +10,7 @@ import { Money } from '../../../domain/value-objects/money.vo';
 import { Sku } from '../../../domain/value-objects/sku.vo';
 import { PRODUCT_CREATED_ROUTING_KEY } from '../../events.constants';
 import { EVENT_PUBLISHER, EventPublisher } from '../../ports/event-publisher';
+import { PRODUCT_SEARCH, ProductSearchIndex } from '../../ports/product-search';
 import { CreateProductCommand } from './create-product.command';
 
 /**
@@ -22,6 +23,7 @@ export class CreateProductUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository,
     @Inject(EVENT_PUBLISHER) private readonly events: EventPublisher,
+    @Inject(PRODUCT_SEARCH) private readonly search: ProductSearchIndex,
   ) {}
 
   async execute(command: CreateProductCommand): Promise<Product> {
@@ -54,6 +56,9 @@ export class CreateProductUseCase {
       stock: created.stock,
     };
     await this.events.publish(PRODUCT_CREATED_ROUTING_KEY, event);
+
+    // Indexado en el buscador best-effort: no debe romper el alta si OpenSearch falla.
+    await this.search.index(created).catch(() => undefined);
 
     return created;
   }

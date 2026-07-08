@@ -2,6 +2,7 @@ import { CreateProductUseCase } from '../../src/catalog/application/use-cases/cr
 import { CreateProductCommand } from '../../src/catalog/application/use-cases/create-product/create-product.command';
 import { PRODUCT_CREATED_ROUTING_KEY } from '../../src/catalog/application/events.constants';
 import { EventPublisher } from '../../src/catalog/application/ports/event-publisher';
+import { ProductSearchIndex } from '../../src/catalog/application/ports/product-search';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { DuplicateSkuError } from '../../src/catalog/domain/errors/duplicate-sku.error';
 import { InvalidProductError } from '../../src/catalog/domain/errors/invalid-product.error';
@@ -28,11 +29,29 @@ function makePublisher(): EventPublisher & { calls: Array<{ key: string; payload
   };
 }
 
+const noopSearch: ProductSearchIndex = {
+  async index() {},
+  async indexMany() {},
+  async search() {
+    return { items: [], total: 0 };
+  },
+};
+
+const failingSearch: ProductSearchIndex = {
+  async index() {
+    throw new Error('opensearch down');
+  },
+  async indexMany() {},
+  async search() {
+    return { items: [], total: 0 };
+  },
+};
+
 describe('CreateProductUseCase', () => {
   it('crea, persiste y publica el evento product.created', async () => {
     const repo = new InMemoryProductRepository();
     const publisher = makePublisher();
-    const created = await new CreateProductUseCase(repo, publisher).execute(baseCommand);
+    const created = await new CreateProductUseCase(repo, publisher, noopSearch).execute(baseCommand);
 
     expect(created.sku.value).toBe('LN-NUEVA-01');
     expect(created.price.amount).toBe(55000);
@@ -43,10 +62,20 @@ describe('CreateProductUseCase', () => {
     expect(publisher.calls[0].payload).toMatchObject({ sku: 'LN-NUEVA-01', name: 'Lente Nueva' });
   });
 
+  it('crea el producto aunque el indexado en el buscador falle (best-effort)', async () => {
+    const created = await new CreateProductUseCase(
+      new InMemoryProductRepository(),
+      makePublisher(),
+      failingSearch,
+    ).execute(baseCommand);
+    expect(created.sku.value).toBe('LN-NUEVA-01');
+  });
+
   it('usa GTQ como moneda por defecto', async () => {
     const created = await new CreateProductUseCase(
       new InMemoryProductRepository(),
       makePublisher(),
+      noopSearch,
     ).execute(baseCommand);
     expect(created.price.currency).toBe('GTQ');
   });
@@ -64,6 +93,7 @@ describe('CreateProductUseCase', () => {
     const useCase = new CreateProductUseCase(
       new InMemoryProductRepository([existing]),
       publisher,
+      noopSearch,
     );
 
     await expect(useCase.execute(baseCommand)).rejects.toBeInstanceOf(DuplicateSkuError);
@@ -71,7 +101,11 @@ describe('CreateProductUseCase', () => {
   });
 
   it('lanza InvalidProductError si el SKU tiene formato inválido', async () => {
-    const useCase = new CreateProductUseCase(new InMemoryProductRepository(), makePublisher());
+    const useCase = new CreateProductUseCase(
+      new InMemoryProductRepository(),
+      makePublisher(),
+      noopSearch,
+    );
     await expect(
       useCase.execute({ ...baseCommand, sku: '!!' }),
     ).rejects.toBeInstanceOf(InvalidProductError);

@@ -31,3 +31,22 @@ export async function getProducts(): Promise<PaginatedResult<ProductDto>> {
 
   return (await response.json()) as PaginatedResult<ProductDto>;
 }
+
+/**
+ * Busca productos por texto (OpenSearch con respaldo en BD, resuelto por el
+ * Catálogo). Devuelve el mismo formato paginado que {@link getProducts}.
+ */
+export async function searchProducts(
+  q: string,
+): Promise<PaginatedResult<ProductDto>> {
+  const response = await fetch(
+    `${resolveApiBaseUrl()}/products/search?q=${encodeURIComponent(q)}`,
+    { cache: 'no-store' },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Error al buscar productos: HTTP ${response.status}`);
+  }
+
+  return (await response.json()) as PaginatedResult<ProductDto>;
+}

@@ -8,7 +8,9 @@ import { JwtAuthGuard } from '../../src/auth/jwt-auth.guard';
 import { RolesGuard } from '../../src/auth/roles.guard';
 import { EVENT_PUBLISHER } from '../../src/catalog/application/ports/event-publisher';
 import { IMAGE_STORAGE } from '../../src/catalog/application/ports/image-storage';
+import { PRODUCT_SEARCH } from '../../src/catalog/application/ports/product-search';
 import { AddProductImageUseCase } from '../../src/catalog/application/use-cases/add-product-image/add-product-image.usecase';
+import { SearchProductsUseCase } from '../../src/catalog/application/use-cases/search-products/search-products.usecase';
 import { SetProductTryOnImageUseCase } from '../../src/catalog/application/use-cases/set-try-on-image/set-try-on-image.usecase';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { PRODUCT_REPOSITORY } from '../../src/catalog/domain/repositories/product.repository';
@@ -41,8 +43,20 @@ describe('Products (e2e)', () => {
         CreateProductUseCase,
         AddProductImageUseCase,
         SetProductTryOnImageUseCase,
+        SearchProductsUseCase,
         { provide: PRODUCT_REPOSITORY, useValue: new InMemoryProductRepository([seeded]) },
         { provide: EVENT_PUBLISHER, useValue: { publish: async () => undefined } },
+        // Simula OpenSearch caído: la búsqueda debe caer a la BD (fallback).
+        {
+          provide: PRODUCT_SEARCH,
+          useValue: {
+            index: async () => undefined,
+            indexMany: async () => undefined,
+            search: async () => {
+              throw new Error('opensearch down');
+            },
+          },
+        },
         {
           provide: IMAGE_STORAGE,
           useValue: {
@@ -94,6 +108,24 @@ describe('Products (e2e)', () => {
 
     it('rechaza un tipo inválido con 400', async () => {
       await request(app.getHttpServer()).get('/api/products?type=INVALID').expect(400);
+    });
+  });
+
+  describe('GET /api/products/search', () => {
+    it('busca y cae a la BD si OpenSearch falla (fallback)', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/products/search?q=Semilla')
+        .expect(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].sku).toBe('SEED-1');
+      expect(res.body.meta).toMatchObject({ page: 1, total: 1 });
+    });
+
+    it('sin coincidencias devuelve lista vacía', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/products/search?q=zzzznada')
+        .expect(200);
+      expect(res.body.data).toHaveLength(0);
     });
   });
 

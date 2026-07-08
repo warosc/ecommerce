@@ -20,9 +20,11 @@ import { AddProductImageUseCase } from '../../application/use-cases/add-product-
 import { CreateProductUseCase } from '../../application/use-cases/create-product/create-product.usecase';
 import { GetProductUseCase } from '../../application/use-cases/get-product/get-product.usecase';
 import { ListProductsUseCase } from '../../application/use-cases/list-products/list-products.usecase';
+import { SearchProductsUseCase } from '../../application/use-cases/search-products/search-products.usecase';
 import { SetProductTryOnImageUseCase } from '../../application/use-cases/set-try-on-image/set-try-on-image.usecase';
 import { CreateProductRequestDto } from './dto/create-product.request.dto';
 import { ListProductsQueryDto } from './dto/list-products.query.dto';
+import { SearchProductsQueryDto } from './dto/search-products.query.dto';
 import { toProductDto } from './dto/product.response.dto';
 
 @Controller('products')
@@ -33,6 +35,7 @@ export class ProductController {
     private readonly createProduct: CreateProductUseCase,
     private readonly addProductImage: AddProductImageUseCase,
     private readonly setTryOnImage: SetProductTryOnImageUseCase,
+    private readonly searchProducts: SearchProductsUseCase,
   ) {}
 
   @Get()
@@ -41,6 +44,25 @@ export class ProductController {
   ): Promise<PaginatedResult<ProductDto>> {
     const result = await this.listProducts.execute(query);
     return { data: result.data.map(toProductDto), meta: result.meta };
+  }
+
+  /** Búsqueda de texto completo (OpenSearch, con respaldo en BD). */
+  @Get('search')
+  async search(
+    @Query() query: SearchProductsQueryDto,
+  ): Promise<PaginatedResult<ProductDto>> {
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const limit = query.limit && query.limit > 0 ? query.limit : 20;
+    const { items, total } = await this.searchProducts.execute({
+      q: query.q,
+      type: query.type,
+      page,
+      limit,
+    });
+    return {
+      data: items.map(toProductDto),
+      meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+    };
   }
 
   @Get(':id')

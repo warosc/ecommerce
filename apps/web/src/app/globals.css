@@ -117,6 +117,21 @@ a {
   padding: 2rem 0;
 }
 
+.search {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 0.5rem;
+  max-width: 560px;
+}
+
+.search input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
