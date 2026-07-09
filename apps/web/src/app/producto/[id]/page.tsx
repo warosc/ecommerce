@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import type { ProductType } from '@optimus/contracts';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -13,6 +14,27 @@ const TYPE_LABELS: Record<ProductType, string> = {
   LENS: 'Lente',
   ACCESSORY: 'Accesorio',
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+  if (!product) return { title: 'Producto no encontrado · Óptica Optimus' };
+  const description =
+    product.description || `${product.brand} — ${TYPE_LABELS[product.type]} en Óptica Optimus.`;
+  return {
+    title: `${product.name} · Óptica Optimus`,
+    description,
+    openGraph: {
+      title: product.name,
+      description,
+      images: product.images.length ? [product.images[0]] : [],
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,6 +78,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               </Link>
             ) : null}
           </div>
+
+          <ul className="trust">
+            <li>🚚 Envío a domicilio</li>
+            <li>🛡️ Garantía de 1 año</li>
+            <li>↩️ 30 días de devolución</li>
+          </ul>
         </div>
       </div>
     </main>

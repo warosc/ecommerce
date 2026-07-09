@@ -36,4 +36,24 @@ describe('Cart', () => {
   it('rechaza cantidad inválida', () => {
     expect(() => Cart.empty('c1').addItem(line('FR-1', 0))).toThrow(InvalidOrderError);
   });
+
+  it('fija la cantidad de una línea (setItemQuantity)', () => {
+    const cart = Cart.fromLines('c1', [line('FR-1', 2, 5000)]);
+    cart.setItemQuantity('fr-1', 5);
+    expect(cart.items.find((l) => l.sku === 'FR-1')!.quantity).toBe(5);
+    expect(cart.totalAmount).toBe(25000);
+  });
+
+  it('setItemQuantity con 0 elimina la línea', () => {
+    const cart = Cart.fromLines('c1', [line('FR-1', 2), line('LN-1', 1)]);
+    cart.setItemQuantity('FR-1', 0);
+    expect(cart.items).toHaveLength(1);
+    expect(cart.items[0].sku).toBe('LN-1');
+  });
+
+  it('setItemQuantity rechaza cantidad no entera', () => {
+    expect(() => Cart.fromLines('c1', [line('FR-1', 1)]).setItemQuantity('FR-1', 1.5)).toThrow(
+      InvalidOrderError,
+    );
+  });
 });

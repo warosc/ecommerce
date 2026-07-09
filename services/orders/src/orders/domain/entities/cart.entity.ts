@@ -75,6 +75,21 @@ export class Cart {
     this.lines = this.lines.filter((l) => l.sku !== sku.toUpperCase());
   }
 
+  /** Fija la cantidad de una línea; si es ≤ 0 la elimina. */
+  setItemQuantity(sku: string, quantity: number): void {
+    if (!Number.isInteger(quantity)) {
+      throw new InvalidOrderError('La cantidad debe ser un entero.');
+    }
+    const normalized = sku.toUpperCase();
+    if (quantity <= 0) {
+      this.removeItem(normalized);
+      return;
+    }
+    this.lines = this.lines.map((l) =>
+      l.sku === normalized ? l.withQuantity(quantity) : l,
+    );
+  }
+
   clear(): void {
     this.lines = [];
   }

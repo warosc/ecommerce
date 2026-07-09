@@ -435,6 +435,53 @@ h3 {
   margin-top: 0.75rem;
 }
 
+.trust {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ── Stepper de cantidad (carrito) ──────────────────────────── */
+.qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qty__btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.qty__btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.qty__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.qty__value {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
 /* ── Grid + tarjetas de producto ────────────────────────────── */
 .grid {
   display: grid;

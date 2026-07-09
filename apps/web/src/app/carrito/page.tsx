@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CheckoutForm } from '@/components/CheckoutForm';
+import { QuantityStepper } from '@/components/QuantityStepper';
 import { RemoveButton } from '@/components/RemoveButton';
 import { fetchCart } from '@/lib/cart';
 import { formatPrice } from '@/lib/format';
@@ -30,11 +31,9 @@ export default async function CarritoPage() {
           <div className="cart-row" key={l.sku}>
             <div>
               <strong>{l.name}</strong>
-              <span className="muted"> · {l.sku}</span>
+              <span className="muted"> · {formatPrice(l.unitPriceAmount, l.currency)} c/u</span>
             </div>
-            <div>
-              {l.quantity} × {formatPrice(l.unitPriceAmount, l.currency)}
-            </div>
+            <QuantityStepper sku={l.sku} quantity={l.quantity} />
             <div className="cart-row__total">{formatPrice(l.lineTotal, l.currency)}</div>
             <RemoveButton sku={l.sku} />
           </div>

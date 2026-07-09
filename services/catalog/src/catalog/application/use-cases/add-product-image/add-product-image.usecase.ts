@@ -10,16 +10,18 @@ import {
   ImageStorage,
   UploadImageInput,
 } from '../../ports/image-storage';
+import { PRODUCT_SEARCH, ProductSearchIndex } from '../../ports/product-search';
 
 /**
  * Sube una imagen a MinIO y añade su URL pública al producto. Lanza
- * ProductNotFoundError si el producto no existe.
+ * ProductNotFoundError si el producto no existe. Reindexa en el buscador.
  */
 @Injectable()
 export class AddProductImageUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository,
     @Inject(IMAGE_STORAGE) private readonly storage: ImageStorage,
+    @Inject(PRODUCT_SEARCH) private readonly search: ProductSearchIndex,
   ) {}
 
   async execute(id: string, input: UploadImageInput): Promise<Product> {
@@ -32,6 +34,7 @@ export class AddProductImageUseCase {
     if (!updated) {
       throw new ProductNotFoundError(id);
     }
+    await this.search.index(updated).catch(() => undefined);
     return updated;
   }
 }

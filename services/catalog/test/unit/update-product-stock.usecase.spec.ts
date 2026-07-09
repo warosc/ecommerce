@@ -2,7 +2,7 @@ import { UpdateProductStockUseCase } from '../../src/catalog/application/use-cas
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
 import { Sku } from '../../src/catalog/domain/value-objects/sku.vo';
-import { InMemoryProductRepository } from '../support/in-memory-product.repository';
+import { InMemoryProductRepository, noopProductSearch } from '../support/in-memory-product.repository';
 
 function seedProduct(): Product {
   return Product.create({
@@ -19,16 +19,16 @@ function seedProduct(): Product {
 describe('UpdateProductStockUseCase', () => {
   it('actualiza el stock del producto por SKU (read-model)', async () => {
     const repo = new InMemoryProductRepository([seedProduct()]);
-    await new UpdateProductStockUseCase(repo).execute('fr-1', 12);
+    await new UpdateProductStockUseCase(repo, noopProductSearch).execute('fr-1', 12);
     const product = await repo.findBySku('FR-1');
     expect(product?.stock).toBe(12);
   });
 
   it('ignora entradas inválidas sin lanzar', async () => {
     const repo = new InMemoryProductRepository([seedProduct()]);
-    await new UpdateProductStockUseCase(repo).execute('', 5);
-    await new UpdateProductStockUseCase(repo).execute('FR-1', -1);
-    await new UpdateProductStockUseCase(repo).execute('FR-1', 1.5);
+    await new UpdateProductStockUseCase(repo, noopProductSearch).execute('', 5);
+    await new UpdateProductStockUseCase(repo, noopProductSearch).execute('FR-1', -1);
+    await new UpdateProductStockUseCase(repo, noopProductSearch).execute('FR-1', 1.5);
     const product = await repo.findBySku('FR-1');
     expect(product?.stock).toBe(5);
   });

@@ -6,5 +6,8 @@ cd /app/services/inventory
 echo "[entrypoint] Aplicando migraciones de Prisma (migrate deploy)..."
 npx prisma migrate deploy
 
+echo "[entrypoint] Ejecutando seed idempotente (existencias iniciales)..."
+npx prisma db seed
+
 echo "[entrypoint] Iniciando la API de Inventario..."
 exec node dist/main.js

@@ -1,6 +1,7 @@
 import { AddToCartUseCase } from '../../src/orders/application/use-cases/cart/add-to-cart.usecase';
 import { GetCartUseCase } from '../../src/orders/application/use-cases/cart/get-cart.usecase';
 import { RemoveFromCartUseCase } from '../../src/orders/application/use-cases/cart/remove-from-cart.usecase';
+import { SetCartItemQuantityUseCase } from '../../src/orders/application/use-cases/cart/set-cart-item-quantity.usecase';
 import { ProductNotAvailableError } from '../../src/orders/domain/errors';
 import {
   InMemoryCartRepository,
@@ -37,5 +38,16 @@ describe('Cart use cases', () => {
     await new AddToCartUseCase(repo, catalog).execute('c1', 'FR-1', 1);
     const cart = await new RemoveFromCartUseCase(repo).execute('c1', 'fr-1');
     expect(cart.isEmpty()).toBe(true);
+  });
+
+  it('SetCartItemQuantity fija la cantidad y elimina con 0', async () => {
+    const repo = new InMemoryCartRepository();
+    const catalog = new StubCatalogGateway({ 'FR-1': product('FR-1', { unitPriceAmount: 5000 }) });
+    await new AddToCartUseCase(repo, catalog).execute('c1', 'FR-1', 1);
+    const useCase = new SetCartItemQuantityUseCase(repo);
+    const updated = await useCase.execute('c1', 'fr-1', 3);
+    expect(updated.items[0].quantity).toBe(3);
+    const emptied = await useCase.execute('c1', 'FR-1', 0);
+    expect(emptied.isEmpty()).toBe(true);
   });
 });

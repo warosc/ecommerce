@@ -6,6 +6,7 @@ import { INVENTORY_GATEWAY } from './application/ports/inventory.gateway';
 import { AddToCartUseCase } from './application/use-cases/cart/add-to-cart.usecase';
 import { GetCartUseCase } from './application/use-cases/cart/get-cart.usecase';
 import { RemoveFromCartUseCase } from './application/use-cases/cart/remove-from-cart.usecase';
+import { SetCartItemQuantityUseCase } from './application/use-cases/cart/set-cart-item-quantity.usecase';
 import { GetOrderUseCase } from './application/use-cases/orders/get-order.usecase';
 import { ListOrdersUseCase } from './application/use-cases/orders/list-orders.usecase';
 import { PlaceOrderUseCase } from './application/use-cases/orders/place-order.usecase';
@@ -34,6 +35,7 @@ import { OrdersController } from './interfaces/http/orders.controller';
     AddToCartUseCase,
     GetCartUseCase,
     RemoveFromCartUseCase,
+    SetCartItemQuantityUseCase,
     PlaceOrderUseCase,
     PlacePosOrderUseCase,
     GetOrderUseCase,

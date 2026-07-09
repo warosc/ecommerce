@@ -16,6 +16,19 @@ export async function addToCartAction(sku: string): Promise<void> {
   revalidatePath('/carrito');
 }
 
+/** Fija la cantidad de una línea del carrito (0 = eliminar). */
+export async function setCartQuantityAction(sku: string, quantity: number): Promise<void> {
+  const cartId = await getCartId();
+  if (!cartId) return;
+  await fetch(`${ORDERS_API}/cart/${cartId}/items/${encodeURIComponent(sku)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quantity: Math.max(0, Math.floor(quantity)) }),
+    cache: 'no-store',
+  });
+  revalidatePath('/carrito');
+}
+
 /** Quita una línea del carrito. */
 export async function removeFromCartAction(sku: string): Promise<void> {
   const cartId = await getCartId();

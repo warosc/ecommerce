@@ -5,7 +5,7 @@ import { ProductNotFoundError } from '../../src/catalog/domain/errors/product-no
 import { ProductRepository } from '../../src/catalog/domain/repositories/product.repository';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
 import { Sku } from '../../src/catalog/domain/value-objects/sku.vo';
-import { InMemoryProductRepository } from '../support/in-memory-product.repository';
+import { InMemoryProductRepository, noopProductSearch } from '../support/in-memory-product.repository';
 
 const storage: ImageStorage = {
   async upload(prefix, input) {
@@ -28,7 +28,7 @@ describe('AddProductImageUseCase', () => {
   it('sube la imagen y añade su URL al producto', async () => {
     const product = seedProduct();
     const repo = new InMemoryProductRepository([product]);
-    const updated = await new AddProductImageUseCase(repo, storage).execute(product.id, {
+    const updated = await new AddProductImageUseCase(repo, storage, noopProductSearch).execute(product.id, {
       buffer: Buffer.from('imagen'),
       filename: 'gafas.jpg',
       contentType: 'image/jpeg',
@@ -39,7 +39,7 @@ describe('AddProductImageUseCase', () => {
   });
 
   it('lanza ProductNotFoundError si el producto no existe', async () => {
-    const useCase = new AddProductImageUseCase(new InMemoryProductRepository(), storage);
+    const useCase = new AddProductImageUseCase(new InMemoryProductRepository(), storage, noopProductSearch);
     await expect(
       useCase.execute('nope', { buffer: Buffer.from('x'), filename: 'a.jpg', contentType: 'image/jpeg' }),
     ).rejects.toBeInstanceOf(ProductNotFoundError);
@@ -51,7 +51,7 @@ describe('AddProductImageUseCase', () => {
       findById: async () => product,
       appendImage: async () => null,
     } as unknown as ProductRepository;
-    const useCase = new AddProductImageUseCase(repo, storage);
+    const useCase = new AddProductImageUseCase(repo, storage, noopProductSearch);
     await expect(
       useCase.execute(product.id, { buffer: Buffer.from('x'), filename: 'a.jpg', contentType: 'image/jpeg' }),
     ).rejects.toBeInstanceOf(ProductNotFoundError);

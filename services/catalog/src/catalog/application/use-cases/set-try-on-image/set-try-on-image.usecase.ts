@@ -10,6 +10,7 @@ import {
   ImageStorage,
   UploadImageInput,
 } from '../../ports/image-storage';
+import { PRODUCT_SEARCH, ProductSearchIndex } from '../../ports/product-search';
 
 /**
  * Sube la montura del probador virtual a MinIO y fija su URL pública en el
@@ -22,6 +23,7 @@ export class SetProductTryOnImageUseCase {
   constructor(
     @Inject(PRODUCT_REPOSITORY) private readonly repository: ProductRepository,
     @Inject(IMAGE_STORAGE) private readonly storage: ImageStorage,
+    @Inject(PRODUCT_SEARCH) private readonly search: ProductSearchIndex,
   ) {}
 
   async execute(id: string, input: UploadImageInput): Promise<Product> {
@@ -34,6 +36,7 @@ export class SetProductTryOnImageUseCase {
     if (!updated) {
       throw new ProductNotFoundError(id);
     }
+    await this.search.index(updated).catch(() => undefined);
     return updated;
   }
 }

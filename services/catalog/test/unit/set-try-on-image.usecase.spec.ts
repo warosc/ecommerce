@@ -5,7 +5,7 @@ import { ProductNotFoundError } from '../../src/catalog/domain/errors/product-no
 import { ProductRepository } from '../../src/catalog/domain/repositories/product.repository';
 import { Money } from '../../src/catalog/domain/value-objects/money.vo';
 import { Sku } from '../../src/catalog/domain/value-objects/sku.vo';
-import { InMemoryProductRepository } from '../support/in-memory-product.repository';
+import { InMemoryProductRepository, noopProductSearch } from '../support/in-memory-product.repository';
 
 const storage: ImageStorage = {
   async upload(prefix, input) {
@@ -29,7 +29,7 @@ describe('SetProductTryOnImageUseCase', () => {
     const product = seedProduct();
     expect(product.tryOnImageUrl).toBeNull();
     const repo = new InMemoryProductRepository([product]);
-    const updated = await new SetProductTryOnImageUseCase(repo, storage).execute(product.id, {
+    const updated = await new SetProductTryOnImageUseCase(repo, storage, noopProductSearch).execute(product.id, {
       buffer: Buffer.from('montura'),
       filename: 'redonda.png',
       contentType: 'image/png',
@@ -42,7 +42,7 @@ describe('SetProductTryOnImageUseCase', () => {
   it('reemplaza la montura anterior (una por producto)', async () => {
     const product = seedProduct();
     const repo = new InMemoryProductRepository([product]);
-    const useCase = new SetProductTryOnImageUseCase(repo, storage);
+    const useCase = new SetProductTryOnImageUseCase(repo, storage, noopProductSearch);
     await useCase.execute(product.id, {
       buffer: Buffer.from('a'),
       filename: 'v1.png',
@@ -57,7 +57,7 @@ describe('SetProductTryOnImageUseCase', () => {
   });
 
   it('lanza ProductNotFoundError si el producto no existe', async () => {
-    const useCase = new SetProductTryOnImageUseCase(new InMemoryProductRepository(), storage);
+    const useCase = new SetProductTryOnImageUseCase(new InMemoryProductRepository(), storage, noopProductSearch);
     await expect(
       useCase.execute('nope', { buffer: Buffer.from('x'), filename: 'a.png', contentType: 'image/png' }),
     ).rejects.toBeInstanceOf(ProductNotFoundError);
@@ -70,7 +70,7 @@ describe('SetProductTryOnImageUseCase', () => {
       findById: async () => product,
       setTryOnImage: async () => null,
     } as unknown as ProductRepository;
-    const useCase = new SetProductTryOnImageUseCase(repo, storage);
+    const useCase = new SetProductTryOnImageUseCase(repo, storage, noopProductSearch);
     await expect(
       useCase.execute(product.id, { buffer: Buffer.from('x'), filename: 'a.png', contentType: 'image/png' }),
     ).rejects.toBeInstanceOf(ProductNotFoundError);

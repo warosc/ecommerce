@@ -7,6 +7,7 @@ import { EVENT_PUBLISHER } from '../../src/orders/application/ports/event-publis
 import { AddToCartUseCase } from '../../src/orders/application/use-cases/cart/add-to-cart.usecase';
 import { GetCartUseCase } from '../../src/orders/application/use-cases/cart/get-cart.usecase';
 import { RemoveFromCartUseCase } from '../../src/orders/application/use-cases/cart/remove-from-cart.usecase';
+import { SetCartItemQuantityUseCase } from '../../src/orders/application/use-cases/cart/set-cart-item-quantity.usecase';
 import { GetOrderUseCase } from '../../src/orders/application/use-cases/orders/get-order.usecase';
 import { ListOrdersUseCase } from '../../src/orders/application/use-cases/orders/list-orders.usecase';
 import { PlaceOrderUseCase } from '../../src/orders/application/use-cases/orders/place-order.usecase';
@@ -45,6 +46,7 @@ describe('Orders (e2e)', () => {
         GetCartUseCase,
         AddToCartUseCase,
         RemoveFromCartUseCase,
+        SetCartItemQuantityUseCase,
         PlaceOrderUseCase,
         PlacePosOrderUseCase,
         GetOrderUseCase,
@@ -100,6 +102,20 @@ describe('Orders (e2e)', () => {
       .post('/api/cart/c1/items')
       .send({ sku: 'NOPE', quantity: 1 })
       .expect(404);
+  });
+
+  it('cambia la cantidad de una línea (PUT) y la elimina con cantidad 0', async () => {
+    await request(server()).post('/api/cart/cq/items').send({ sku: 'FR-1', quantity: 1 }).expect(200);
+    await request(server())
+      .put('/api/cart/cq/items/FR-1')
+      .send({ quantity: 4 })
+      .expect(200)
+      .expect((r) => expect(r.body.lines[0].quantity).toBe(4));
+    await request(server())
+      .put('/api/cart/cq/items/FR-1')
+      .send({ quantity: 0 })
+      .expect(200)
+      .expect((r) => expect(r.body.lines).toHaveLength(0));
   });
 
   it('checkout crea pedido (201) y publica order.placed', async () => {

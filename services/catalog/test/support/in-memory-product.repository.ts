@@ -1,9 +1,19 @@
+import { ProductSearchIndex } from '../../src/catalog/application/ports/product-search';
 import { Product } from '../../src/catalog/domain/entities/product.entity';
 import {
   FindManyResult,
   ListProductsFilter,
   ProductRepository,
 } from '../../src/catalog/domain/repositories/product.repository';
+
+/** Índice de búsqueda no-op para tests que no verifican la indexación. */
+export const noopProductSearch: ProductSearchIndex = {
+  async index() {},
+  async indexMany() {},
+  async search() {
+    return { items: [], total: 0 };
+  },
+};
 
 /**
  * Implementación en memoria del puerto ProductRepository, usada en tests
