@@ -4,12 +4,16 @@ import { ProductType } from '../value-objects/product-type.vo';
 /** Token de inyección del puerto (se bindea a un adaptador en catalog.module.ts). */
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');
 
+export type ProductSort = 'newest' | 'price_asc' | 'price_desc';
+
 /** Filtro ya normalizado que recibe el repositorio para listar productos. */
 export interface ListProductsFilter {
   page: number;
   limit: number;
   type?: ProductType;
   search?: string;
+  brand?: string;
+  sort?: ProductSort;
 }
 
 /** Resultado de una búsqueda paginada a nivel de repositorio. */

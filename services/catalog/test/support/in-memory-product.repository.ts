@@ -22,6 +22,10 @@ export class InMemoryProductRepository implements ProductRepository {
     if (filter.type) {
       items = items.filter((p) => p.type === filter.type);
     }
+    if (filter.brand) {
+      const b = filter.brand.toLowerCase();
+      items = items.filter((p) => p.brand.toLowerCase().includes(b));
+    }
     if (filter.search) {
       const needle = filter.search.toLowerCase();
       items = items.filter(
@@ -29,6 +33,12 @@ export class InMemoryProductRepository implements ProductRepository {
           p.name.toLowerCase().includes(needle) ||
           p.sku.value.toLowerCase().includes(needle),
       );
+    }
+
+    if (filter.sort === 'price_asc') {
+      items = [...items].sort((a, b) => a.price.amount - b.price.amount);
+    } else if (filter.sort === 'price_desc') {
+      items = [...items].sort((a, b) => b.price.amount - a.price.amount);
     }
 
     const total = items.length;

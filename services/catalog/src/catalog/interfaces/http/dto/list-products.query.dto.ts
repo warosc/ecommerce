@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import type { ListProductsQuery } from '@optimus/contracts';
+import type { ListProductsQuery, ProductSort } from '@optimus/contracts';
 import {
   PRODUCT_TYPES,
   ProductType,
@@ -28,4 +28,12 @@ export class ListProductsQueryDto implements ListProductsQuery {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  brand?: string;
+
+  @IsOptional()
+  @IsIn(['newest', 'price_asc', 'price_desc'])
+  sort?: ProductSort;
 }

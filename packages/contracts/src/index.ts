@@ -67,6 +67,9 @@ export interface PaginatedResult<T> {
   meta: PaginationMeta;
 }
 
+/** Orden de listado del catálogo. */
+export type ProductSort = 'newest' | 'price_asc' | 'price_desc';
+
 /** Parámetros de consulta aceptados por `GET /api/products`. */
 export interface ListProductsQuery {
   page?: number;
@@ -74,6 +77,10 @@ export interface ListProductsQuery {
   type?: ProductType;
   /** Búsqueda por nombre o SKU. */
   search?: string;
+  /** Filtro por marca (coincidencia parcial, insensible a mayúsculas). */
+  brand?: string;
+  /** Orden de los resultados (por defecto 'newest'). */
+  sort?: ProductSort;
 }
 
 /** Cuerpo aceptado por `POST /api/products`. */

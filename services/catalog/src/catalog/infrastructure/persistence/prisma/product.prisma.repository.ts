@@ -19,6 +19,9 @@ export class PrismaProductRepository implements ProductRepository {
     if (filter.type) {
       where.type = filter.type;
     }
+    if (filter.brand) {
+      where.brand = { contains: filter.brand, mode: 'insensitive' };
+    }
     if (filter.search) {
       where.OR = [
         { name: { contains: filter.search, mode: 'insensitive' } },
@@ -26,12 +29,19 @@ export class PrismaProductRepository implements ProductRepository {
       ];
     }
 
+    const orderBy: Prisma.ProductOrderByWithRelationInput =
+      filter.sort === 'price_asc'
+        ? { priceAmount: 'asc' }
+        : filter.sort === 'price_desc'
+          ? { priceAmount: 'desc' }
+          : { createdAt: 'desc' };
+
     const [records, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
         skip: (filter.page - 1) * filter.limit,
         take: filter.limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       }),
       this.prisma.product.count({ where }),
     ]);

@@ -1,3 +1,4 @@
+import { ProductSort } from '../../../domain/repositories/product.repository';
 import { ProductType } from '../../../domain/value-objects/product-type.vo';
 
 /** Entrada (sin normalizar) del caso de uso ListProducts. */
@@ -6,6 +7,8 @@ export interface ListProductsQuery {
   limit?: number;
   type?: ProductType;
   search?: string;
+  brand?: string;
+  sort?: ProductSort;
 }
 
 export const DEFAULT_PAGE = 1;

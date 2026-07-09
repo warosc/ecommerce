@@ -59,7 +59,7 @@ describe('getProducts', () => {
     const result = await getProducts();
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://api.test/api/products',
+      'http://api.test/api/products?limit=100',
       expect.objectContaining({ cache: 'no-store' }),
     );
     expect(result.meta.total).toBe(1);

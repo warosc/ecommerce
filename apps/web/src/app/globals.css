@@ -294,6 +294,147 @@ h3 {
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
+/* ── Filtros del catálogo ───────────────────────────────────── */
+.filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 1.25rem 0 0.75rem;
+  padding: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.filters__search {
+  flex: 1 1 220px;
+}
+
+.filters input,
+.filters select {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.92rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+}
+
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.filters .cta {
+  padding: 0.6rem 1.2rem;
+}
+
+/* ── Ficha de producto (PDP) ────────────────────────────────── */
+.pdp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 2rem;
+  margin-top: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .pdp {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pdp__gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pdp__image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.pdp__thumbs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pdp__thumb {
+  width: 68px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface-2);
+}
+
+.pdp__thumb.is-active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+.pdp__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pdp__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pdp__title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  margin: 0.2rem 0 0;
+}
+
+.pdp__brand {
+  color: var(--muted);
+  margin: 0;
+  font-size: 1rem;
+}
+
+.pdp__pricerow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.pdp__price {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.pdp__desc {
+  color: #344054;
+  line-height: 1.6;
+}
+
+.pdp__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 320px;
+  margin-top: 0.75rem;
+}
+
 /* ── Grid + tarjetas de producto ────────────────────────────── */
 .grid {
   display: grid;

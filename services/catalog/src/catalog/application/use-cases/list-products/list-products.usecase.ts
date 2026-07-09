@@ -32,6 +32,8 @@ export class ListProductsUseCase {
       limit,
       type: query.type,
       search,
+      brand: query.brand?.trim() || undefined,
+      sort: query.sort,
     });
 
     return {

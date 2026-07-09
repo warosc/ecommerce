@@ -14,17 +14,19 @@ export function ProductCard({ product }: { product: ProductDto }) {
 
   return (
     <article className="card">
-      <div className="card__media">
+      <Link className="card__media" href={`/producto/${product.id}`} aria-label={product.name}>
         {product.images[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img className="card__img" src={product.images[0]} alt={product.name} />
         ) : (
           <div className="card__img card__img--placeholder" aria-hidden="true" />
         )}
-      </div>
+      </Link>
       <div className="card__body">
         <span className="card__type">{TYPE_LABELS[product.type]}</span>
-        <h3 className="card__name">{product.name}</h3>
+        <h3 className="card__name">
+          <Link href={`/producto/${product.id}`}>{product.name}</Link>
+        </h3>
         <p className="card__brand">{product.brand}</p>
         <div className="card__footer">
           <span className="card__price">
