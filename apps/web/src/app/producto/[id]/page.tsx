@@ -47,6 +47,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const discountPct = hasDiscount
     ? Math.round((1 - product.price.amount / (product.compareAtAmount as number)) * 100)
     : 0;
+  // Si no hay fotos de catálogo, muestra la montura del probador (transparente).
+  const galleryImages =
+    product.images.length > 0
+      ? product.images
+      : product.tryOnImageUrl
+        ? [product.tryOnImageUrl]
+        : [];
+  const galleryContain = product.images.length === 0 && Boolean(product.tryOnImageUrl);
 
   return (
     <main className="container">
@@ -55,7 +63,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </nav>
 
       <div className="pdp">
-        <ProductGallery images={product.images} alt={product.name} />
+        <ProductGallery images={galleryImages} alt={product.name} contain={galleryContain} />
 
         <div className="pdp__info">
           <span className="card__type">{TYPE_LABELS[product.type]}</span>

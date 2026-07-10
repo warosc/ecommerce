@@ -1,6 +1,32 @@
+import type { ProductDto } from '@optimus/contracts';
 import Link from 'next/link';
+import { ProductCard } from '@/components/ProductCard';
+import { getProducts } from '@/lib/api';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+const CATEGORIES = [
+  { type: 'FRAME', label: 'Monturas', emoji: '👓', desc: 'De acetato, metal y más' },
+  { type: 'LENS', label: 'Lentes', emoji: '🔍', desc: 'Antirreflejo, progresivos, sol' },
+  { type: 'ACCESSORY', label: 'Accesorios', emoji: '🧼', desc: 'Estuches, limpieza, cadenas' },
+];
+
+const VALUE_PROPS = [
+  { icon: '🕶️', title: 'Pruébatelas online', desc: 'Probador virtual con tu cámara' },
+  { icon: '🚚', title: 'Envío a domicilio', desc: 'A todo el país' },
+  { icon: '🛡️', title: 'Garantía de 1 año', desc: 'En todas las monturas' },
+  { icon: '↩️', title: '30 días de devolución', desc: 'Sin complicaciones' },
+];
+
+export default async function HomePage() {
+  let featured: ProductDto[] = [];
+  try {
+    const { data } = await getProducts({ limit: 4 });
+    featured = data.slice(0, 4);
+  } catch {
+    // Si el catálogo no responde, la landing se muestra sin destacados.
+  }
+
   return (
     <main className="container">
       <section className="hero">
@@ -17,6 +43,64 @@ export default function HomePage() {
           <Link className="cta cta--ghost" href="/probador">
             Probador virtual →
           </Link>
+        </div>
+      </section>
+
+      <section className="valueprops">
+        {VALUE_PROPS.map((v) => (
+          <div className="valueprop" key={v.title}>
+            <span className="valueprop__icon" aria-hidden="true">
+              {v.icon}
+            </span>
+            <div>
+              <strong>{v.title}</strong>
+              <p>{v.desc}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="section">
+        <h2 className="section__title">Explora por categoría</h2>
+        <div className="categories">
+          {CATEGORIES.map((c) => (
+            <Link className="category" key={c.type} href={`/catalogo?type=${c.type}`}>
+              <span className="category__emoji" aria-hidden="true">
+                {c.emoji}
+              </span>
+              <span className="category__label">{c.label}</span>
+              <span className="category__desc">{c.desc}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {featured.length > 0 ? (
+        <section className="section">
+          <div className="section__head">
+            <h2 className="section__title">Destacados</h2>
+            <Link className="section__link" href="/catalogo">
+              Ver todo →
+            </Link>
+          </div>
+          <div className="grid">
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="promo">
+        <div className="promo__text">
+          <h2>¿No sabes cuál te queda?</h2>
+          <p>Enciende tu cámara y pruébate las monturas en tiempo real. Sin apps, sin filas.</p>
+          <Link className="cta" href="/probador">
+            Abrir el probador
+          </Link>
+        </div>
+        <div className="promo__art" aria-hidden="true">
+          🕶️
         </div>
       </section>
     </main>

@@ -219,6 +219,150 @@ h3 {
   border: 1px solid var(--line);
 }
 
+/* ── Landing: propuestas de valor ───────────────────────────── */
+.valueprops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.valueprop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.valueprop__icon {
+  font-size: 1.5rem;
+}
+
+.valueprop strong {
+  font-size: 0.95rem;
+}
+
+.valueprop p {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ── Landing: secciones ─────────────────────────────────────── */
+.section {
+  margin-top: 3rem;
+}
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.section__link {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+/* ── Landing: categorías ────────────────────────────────────── */
+.categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(600px 200px at 100% 0%, var(--primary-soft), transparent 70%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.14s, box-shadow 0.18s;
+}
+
+.category:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.category__emoji {
+  font-size: 2rem;
+}
+
+.category__label {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.category__desc {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ── Landing: banda del probador ────────────────────────────── */
+.promo {
+  margin-top: 3rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 2.5rem;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--primary), var(--accent));
+  box-shadow: var(--shadow);
+}
+
+.promo__text h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.7rem;
+}
+
+.promo__text p {
+  margin: 0 0 1.25rem;
+  opacity: 0.92;
+  max-width: 46ch;
+}
+
+.promo .cta {
+  background: #fff;
+  color: var(--primary);
+}
+
+.promo__art {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+@media (max-width: 620px) {
+  .promo {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .promo__art {
+    display: none;
+  }
+}
+
 /* ── Contenedor / utilidades ────────────────────────────────── */
 .container {
   max-width: var(--max);
@@ -520,10 +664,21 @@ h3 {
   display: block;
 }
 
+.card__img--contain {
+  object-fit: contain;
+  padding: 10%;
+  background: var(--surface-2);
+}
+
 .card__img--placeholder {
   background:
     radial-gradient(circle at 30% 30%, #e9edf5, transparent 60%),
     repeating-linear-gradient(45deg, #eef1f7, #eef1f7 12px, #e7ebf3 12px, #e7ebf3 24px);
+}
+
+.pdp__image--contain {
+  object-fit: contain;
+  padding: 8%;
 }
 
 .card__body {

@@ -3,7 +3,15 @@
 import { useState } from 'react';
 
 /** Galería de producto: imagen principal + miniaturas para cambiarla. */
-export function ProductGallery({ images, alt }: { images: string[]; alt: string }) {
+export function ProductGallery({
+  images,
+  alt,
+  contain = false,
+}: {
+  images: string[];
+  alt: string;
+  contain?: boolean;
+}) {
   const [active, setActive] = useState(0);
 
   if (images.length === 0) {
@@ -13,7 +21,11 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
   return (
     <div className="pdp__gallery">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="pdp__image" src={images[active]} alt={alt} />
+      <img
+        className={`pdp__image ${contain ? 'pdp__image--contain' : ''}`}
+        src={images[active]}
+        alt={alt}
+      />
       {images.length > 1 ? (
         <div className="pdp__thumbs">
           {images.map((src, i) => (

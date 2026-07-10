@@ -16,14 +16,21 @@ export function ProductCard({ product }: { product: ProductDto }) {
   const discountPct = hasDiscount
     ? Math.round((1 - product.price.amount / (product.compareAtAmount as number)) * 100)
     : 0;
+  // Si no hay foto de catálogo, usa la montura del probador (PNG transparente).
+  const image = product.images[0] ?? product.tryOnImageUrl;
+  const isTryOn = !product.images[0] && Boolean(product.tryOnImageUrl);
 
   return (
     <article className="card">
       <Link className="card__media" href={`/producto/${product.id}`} aria-label={product.name}>
         {hasDiscount ? <span className="card__discount">−{discountPct}%</span> : null}
-        {product.images[0] ? (
+        {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="card__img" src={product.images[0]} alt={product.name} />
+          <img
+            className={`card__img ${isTryOn ? 'card__img--contain' : ''}`}
+            src={image}
+            alt={product.name}
+          />
         ) : (
           <div className="card__img card__img--placeholder" aria-hidden="true" />
         )}
