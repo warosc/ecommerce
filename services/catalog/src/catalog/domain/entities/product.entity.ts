@@ -13,6 +13,8 @@ export interface ProductProps {
   type: ProductType;
   brand: string;
   price: Money;
+  /** Precio anterior en centavos (para mostrar descuento), o null. */
+  compareAtAmount: number | null;
   stock: number;
   images: string[];
   /** URL de la montura para el probador virtual (transparente), o null. */
@@ -30,6 +32,7 @@ export interface NewProductInput {
   type: ProductType;
   brand: string;
   price: Money;
+  compareAtAmount?: number | null;
   stock?: number;
   images?: string[];
   active?: boolean;
@@ -60,6 +63,10 @@ export class Product {
     if (!Array.isArray(images) || images.some((i) => typeof i !== 'string' || i.trim() === '')) {
       throw new InvalidProductError('Las imágenes deben ser una lista de URLs no vacías.');
     }
+    const compareAtAmount = input.compareAtAmount ?? null;
+    if (compareAtAmount !== null && (!Number.isInteger(compareAtAmount) || compareAtAmount < 0)) {
+      throw new InvalidProductError('El precio anterior debe ser un entero ≥ 0 en centavos.');
+    }
 
     const now = new Date();
     return new Product({
@@ -70,6 +77,7 @@ export class Product {
       type: input.type,
       brand,
       price: input.price,
+      compareAtAmount,
       stock,
       images,
       tryOnImageUrl: null,
@@ -104,6 +112,9 @@ export class Product {
   }
   get price(): Money {
     return this.props.price;
+  }
+  get compareAtAmount(): number | null {
+    return this.props.compareAtAmount;
   }
   get stock(): number {
     return this.props.stock;

@@ -43,6 +43,7 @@ export class CreateProductUseCase {
       type: command.type,
       brand: command.brand,
       price,
+      compareAtAmount: command.compareAtAmount,
       stock: command.stock,
       images: command.images,
     });

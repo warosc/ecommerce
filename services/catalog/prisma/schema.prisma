@@ -25,6 +25,8 @@ model Product {
   brand       String
   /// Precio en centavos (entero) para evitar errores de punto flotante.
   priceAmount Int
+  /// Precio anterior en centavos (para mostrar descuento). Nulo si no hay rebaja.
+  compareAtAmount Int?
   /// Moneda ISO 4217. Por defecto GTQ (Quetzal guatemalteco).
   currency    String      @default("GTQ")
   stock       Int         @default(0)

@@ -43,6 +43,10 @@ export function CreateProductForm() {
         </label>
       </div>
       <label>
+        Precio anterior (centavos, opcional)
+        <input name="compareAtAmount" type="number" min="0" placeholder="Para mostrar descuento" />
+      </label>
+      <label>
         Stock
         <input name="stock" type="number" min="0" defaultValue={0} />
       </label>

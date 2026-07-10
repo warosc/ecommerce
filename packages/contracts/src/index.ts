@@ -38,6 +38,12 @@ export interface ProductDto {
   type: ProductType;
   brand: string;
   price: Money;
+  /**
+   * Precio anterior (antes de descuento), en la misma moneda que `price`. `null`
+   * si no hay descuento. Si es mayor que `price`, la tienda muestra el tachado y
+   * el porcentaje de rebaja.
+   */
+  compareAtAmount: number | null;
   stock: number;
   images: string[];
   /**
@@ -93,6 +99,8 @@ export interface CreateProductRequest {
   brand: string;
   /** Importe en centavos (entero). */
   priceAmount: number;
+  /** Precio anterior en centavos (opcional; para mostrar descuento). */
+  compareAtAmount?: number;
   /** ISO 4217. Por defecto 'GTQ'. */
   currency?: string;
   stock?: number;

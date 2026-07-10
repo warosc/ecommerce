@@ -42,6 +42,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
 
   const inStock = product.stock > 0;
+  const hasDiscount =
+    product.compareAtAmount != null && product.compareAtAmount > product.price.amount;
+  const discountPct = hasDiscount
+    ? Math.round((1 - product.price.amount / (product.compareAtAmount as number)) * 100)
+    : 0;
 
   return (
     <main className="container">
@@ -61,6 +66,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <span className="pdp__price">
               {formatPrice(product.price.amount, product.price.currency)}
             </span>
+            {hasDiscount ? (
+              <>
+                <span className="pdp__compare">
+                  {formatPrice(product.compareAtAmount as number, product.price.currency)}
+                </span>
+                <span className="pdp__discount">−{discountPct}%</span>
+              </>
+            ) : null}
             <span className={`badge ${inStock ? 'badge--in' : 'badge--out'}`}>
               {inStock ? `Stock: ${product.stock}` : 'Agotado'}
             </span>

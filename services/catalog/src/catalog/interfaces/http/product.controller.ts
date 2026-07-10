@@ -82,6 +82,7 @@ export class ProductController {
       type: body.type,
       brand: body.brand,
       priceAmount: body.priceAmount,
+      compareAtAmount: body.compareAtAmount,
       currency: body.currency,
       stock: body.stock,
       images: body.images,

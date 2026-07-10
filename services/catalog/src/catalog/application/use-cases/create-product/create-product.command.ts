@@ -9,6 +9,8 @@ export interface CreateProductCommand {
   brand: string;
   /** Importe en centavos (entero). */
   priceAmount: number;
+  /** Precio anterior en centavos (opcional; para mostrar descuento). */
+  compareAtAmount?: number;
   /** ISO 4217; por defecto 'GTQ'. */
   currency?: string;
   stock?: number;

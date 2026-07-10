@@ -561,9 +561,49 @@ h3 {
   margin-top: 0.75rem;
 }
 
+.card__pricegroup {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
 .card__price {
   font-weight: 800;
   font-size: 1.15rem;
+}
+
+.card__compare {
+  color: var(--muted);
+  text-decoration: line-through;
+  font-size: 0.85rem;
+}
+
+.card__discount {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 1;
+  background: var(--danger);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
+.pdp__compare {
+  color: var(--muted);
+  text-decoration: line-through;
+  font-size: 1.15rem;
+}
+
+.pdp__discount {
+  background: var(--danger);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
 }
 
 .badge {

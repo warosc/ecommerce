@@ -18,6 +18,7 @@ interface ProductDoc {
   type: string;
   brand: string;
   priceAmount: number;
+  compareAtAmount: number | null;
   currency: string;
   stock: number;
   images: string[];
@@ -96,6 +97,7 @@ export class OpenSearchProductIndex implements ProductSearchIndex, OnModuleInit 
       type: p.type,
       brand: p.brand,
       priceAmount: p.price.amount,
+      compareAtAmount: p.compareAtAmount,
       currency: p.price.currency,
       stock: p.stock,
       images: p.images,
@@ -115,6 +117,7 @@ export class OpenSearchProductIndex implements ProductSearchIndex, OnModuleInit 
       type: d.type as ProductType,
       brand: d.brand,
       price: Money.create(d.priceAmount, d.currency),
+      compareAtAmount: d.compareAtAmount ?? null,
       stock: d.stock,
       images: d.images,
       tryOnImageUrl: d.tryOnImageUrl ?? null,

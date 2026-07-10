@@ -28,6 +28,20 @@ describe('Product.create', () => {
     expect(product.updatedAt).toBeInstanceOf(Date);
   });
 
+  it('acepta un precio anterior (compareAtAmount) válido', () => {
+    const product = Product.create(validInput({ compareAtAmount: 60000 }));
+    expect(product.compareAtAmount).toBe(60000);
+  });
+
+  it('deja compareAtAmount en null si se omite', () => {
+    expect(Product.create(validInput()).compareAtAmount).toBeNull();
+  });
+
+  it('rechaza un compareAtAmount inválido', () => {
+    expect(() => Product.create(validInput({ compareAtAmount: -100 }))).toThrow(InvalidProductError);
+    expect(() => Product.create(validInput({ compareAtAmount: 12.5 }))).toThrow(InvalidProductError);
+  });
+
   it('aplica descripción vacía por defecto cuando se omite', () => {
     const input = validInput();
     delete (input as { description?: string }).description;
@@ -79,6 +93,7 @@ describe('Product.fromPersistence', () => {
       type: 'ACCESSORY',
       brand: 'Optimus',
       price: Money.create(6000),
+      compareAtAmount: null,
       stock: 10,
       images: [],
       tryOnImageUrl: null,

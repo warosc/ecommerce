@@ -37,6 +37,7 @@ export async function createProduct(
     return { ok: false, message: 'No autenticado. Inicia sesión de nuevo.' };
   }
 
+  const compareRaw = String(formData.get('compareAtAmount') ?? '').trim();
   const body = {
     sku: String(formData.get('sku') ?? '').trim(),
     name: String(formData.get('name') ?? '').trim(),
@@ -44,6 +45,7 @@ export async function createProduct(
     type: String(formData.get('type') ?? 'FRAME'),
     brand: String(formData.get('brand') ?? '').trim(),
     priceAmount: Number(formData.get('priceAmount') ?? 0),
+    compareAtAmount: compareRaw ? Number(compareRaw) : undefined,
     stock: Number(formData.get('stock') ?? 0),
   };
 

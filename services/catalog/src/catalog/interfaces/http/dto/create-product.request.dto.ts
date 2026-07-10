@@ -40,6 +40,11 @@ export class CreateProductRequestDto implements CreateProductRequest {
   priceAmount!: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  compareAtAmount?: number;
+
+  @IsOptional()
   @IsString()
   @Length(3, 3)
   currency?: string;
