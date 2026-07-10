@@ -21,13 +21,12 @@ const SEED_ITEMS: { sku: string; onHand: number }[] = [
 ];
 
 async function main(): Promise<void> {
-  const existing = await prisma.inventoryItem.count();
-  if (existing > 0) {
-    console.log(`[seed] Ya existen ${existing} items de inventario. Se omite (idempotente).`);
-    return;
-  }
-  await prisma.inventoryItem.createMany({ data: SEED_ITEMS });
-  console.log(`[seed] Insertados ${SEED_ITEMS.length} items de inventario.`);
+  // Idempotente por SKU: inserta solo los que falten (no toca los existentes).
+  const { count } = await prisma.inventoryItem.createMany({
+    data: SEED_ITEMS,
+    skipDuplicates: true,
+  });
+  console.log(`[seed] Items de inventario insertados: ${count} (de ${SEED_ITEMS.length}).`);
 }
 
 main()
