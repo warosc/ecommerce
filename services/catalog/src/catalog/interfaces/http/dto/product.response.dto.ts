@@ -12,6 +12,7 @@ export function toProductDto(product: Product): ProductDto {
     brand: product.brand,
     price: { amount: product.price.amount, currency: product.price.currency },
     compareAtAmount: product.compareAtAmount,
+    measurements: product.measurements,
     stock: product.stock,
     images: product.images,
     tryOnImageUrl: product.tryOnImageUrl,

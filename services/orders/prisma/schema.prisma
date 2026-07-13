@@ -31,6 +31,10 @@ model Order {
   customerName  String
   customerEmail String
   customerPhone String?
+  /// Tipo de lente elegido en el checkout (SIN_GRADUACION|MONOFOCAL|PROGRESIVO|OCUPACIONAL). Nulo si no aplica.
+  lensType      String?
+  /// Fórmula/receta que el cliente indicó al comprar (texto libre). Nulo si no aplica.
+  prescriptionNote String?
   totalAmount   Int
   currency      String         @default("GTQ")
   createdAt     DateTime       @default(now())

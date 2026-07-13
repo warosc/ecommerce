@@ -5,6 +5,14 @@ import { Customer } from '../value-objects/customer.vo';
 export type OrderStatus = 'PLACED';
 export type OrderChannel = 'WEB' | 'POS';
 export type PaymentMethod = 'CASH' | 'CARD';
+export type LensType = 'SIN_GRADUACION' | 'MONOFOCAL' | 'PROGRESIVO' | 'OCUPACIONAL';
+
+const LENS_TYPES: readonly LensType[] = [
+  'SIN_GRADUACION',
+  'MONOFOCAL',
+  'PROGRESIVO',
+  'OCUPACIONAL',
+];
 
 export interface OrderLineProps {
   sku: string;
@@ -39,6 +47,8 @@ export interface OrderProps {
   paymentMethod: PaymentMethod | null;
   customer: Customer;
   lines: OrderLine[];
+  lensType: LensType | null;
+  prescriptionNote: string | null;
   totalAmount: number;
   currency: string;
   createdAt: Date;
@@ -48,6 +58,8 @@ export interface CreateOrderOptions {
   currency?: string;
   channel?: OrderChannel;
   paymentMethod?: PaymentMethod | null;
+  lensType?: LensType | null;
+  prescriptionNote?: string | null;
 }
 
 /** Agregado raíz del contexto Pedidos. */
@@ -68,6 +80,16 @@ export class Order {
       }
       return new OrderLine(l);
     });
+    const lensType = options.lensType ?? null;
+    if (lensType !== null && !LENS_TYPES.includes(lensType)) {
+      throw new InvalidOrderError(`Tipo de lente inválido: '${lensType}'.`);
+    }
+    const noteRaw = options.prescriptionNote?.trim();
+    const prescriptionNote = noteRaw ? noteRaw : null;
+    if (prescriptionNote !== null && prescriptionNote.length > 500) {
+      throw new InvalidOrderError('La receta no debe exceder 500 caracteres.');
+    }
+
     const totalAmount = orderLines.reduce((sum, l) => sum + l.lineTotal, 0);
     return new Order({
       id: randomUUID(),
@@ -76,6 +98,8 @@ export class Order {
       paymentMethod: options.paymentMethod ?? null,
       customer,
       lines: orderLines,
+      lensType,
+      prescriptionNote,
       totalAmount,
       currency: options.currency ?? 'GTQ',
       createdAt: new Date(),
@@ -103,6 +127,12 @@ export class Order {
   }
   get lines(): OrderLine[] {
     return [...this.props.lines];
+  }
+  get lensType(): LensType | null {
+    return this.props.lensType;
+  }
+  get prescriptionNote(): string | null {
+    return this.props.prescriptionNote;
   }
   get totalAmount(): number {
     return this.props.totalAmount;

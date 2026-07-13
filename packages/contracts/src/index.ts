@@ -44,6 +44,11 @@ export interface ProductDto {
    * el porcentaje de rebaja.
    */
   compareAtAmount: number | null;
+  /**
+   * Medidas de la montura en notación óptica `calibre-puente-varilla` (mm), p. ej.
+   * `52-18-140`. `null` si no aplica (lentes, accesorios).
+   */
+  measurements: string | null;
   stock: number;
   images: string[];
   /**
@@ -101,6 +106,8 @@ export interface CreateProductRequest {
   priceAmount: number;
   /** Precio anterior en centavos (opcional; para mostrar descuento). */
   compareAtAmount?: number;
+  /** Medidas "calibre-puente-varilla" en mm (opcional), p. ej. 52-18-140. */
+  measurements?: string;
   /** ISO 4217. Por defecto 'GTQ'. */
   currency?: string;
   stock?: number;
@@ -227,6 +234,19 @@ export interface OrderLineDto {
 }
 
 /** Pedido tal como lo devuelve la API. */
+/**
+ * Tipo de lente elegido al comprar monturas graduadas. `SIN_GRADUACION` para
+ * lentes de sol/moda sin fórmula.
+ */
+export type LensType = 'SIN_GRADUACION' | 'MONOFOCAL' | 'PROGRESIVO' | 'OCUPACIONAL';
+
+export const LENS_TYPES: readonly LensType[] = [
+  'SIN_GRADUACION',
+  'MONOFOCAL',
+  'PROGRESIVO',
+  'OCUPACIONAL',
+];
+
 export interface OrderDto {
   id: string;
   status: OrderStatus;
@@ -236,6 +256,10 @@ export interface OrderDto {
   paymentMethod: PaymentMethod | null;
   customer: CustomerDto;
   lines: OrderLineDto[];
+  /** Tipo de lente elegido en el checkout, o `null` si no aplica. */
+  lensType: LensType | null;
+  /** Fórmula/receta que el cliente indicó al comprar, o `null`. */
+  prescriptionNote: string | null;
   totalAmount: number;
   currency: string;
   createdAt: string;
@@ -245,6 +269,10 @@ export interface OrderDto {
 export interface PlaceOrderRequest {
   cartId: string;
   customer: CustomerDto;
+  /** Tipo de lente (opcional; para monturas graduadas). */
+  lensType?: LensType;
+  /** Fórmula/receta indicada por el cliente (texto libre, opcional). */
+  prescriptionNote?: string;
 }
 
 // ─────────────────────────── Clínica: Pacientes + Agenda (Fase 7) ───────────

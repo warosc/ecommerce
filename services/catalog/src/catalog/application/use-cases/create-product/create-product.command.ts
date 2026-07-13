@@ -11,6 +11,8 @@ export interface CreateProductCommand {
   priceAmount: number;
   /** Precio anterior en centavos (opcional; para mostrar descuento). */
   compareAtAmount?: number;
+  /** Medidas "calibre-puente-varilla" en mm (opcional). */
+  measurements?: string;
   /** ISO 4217; por defecto 'GTQ'. */
   currency?: string;
   stock?: number;

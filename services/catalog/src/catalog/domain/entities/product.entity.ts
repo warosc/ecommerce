@@ -15,6 +15,8 @@ export interface ProductProps {
   price: Money;
   /** Precio anterior en centavos (para mostrar descuento), o null. */
   compareAtAmount: number | null;
+  /** Medidas de la montura en notación óptica "calibre-puente-varilla" (mm), o null. */
+  measurements: string | null;
   stock: number;
   images: string[];
   /** URL de la montura para el probador virtual (transparente), o null. */
@@ -33,6 +35,7 @@ export interface NewProductInput {
   brand: string;
   price: Money;
   compareAtAmount?: number | null;
+  measurements?: string | null;
   stock?: number;
   images?: string[];
   active?: boolean;
@@ -67,6 +70,13 @@ export class Product {
     if (compareAtAmount !== null && (!Number.isInteger(compareAtAmount) || compareAtAmount < 0)) {
       throw new InvalidProductError('El precio anterior debe ser un entero ≥ 0 en centavos.');
     }
+    const rawMeasurements = input.measurements?.trim();
+    const measurements = rawMeasurements ? rawMeasurements : null;
+    if (measurements !== null && !/^\d{2}-\d{2}-\d{2,3}$/.test(measurements)) {
+      throw new InvalidProductError(
+        'Las medidas deben tener el formato "calibre-puente-varilla" (mm), p. ej. 52-18-140.',
+      );
+    }
 
     const now = new Date();
     return new Product({
@@ -78,6 +88,7 @@ export class Product {
       brand,
       price: input.price,
       compareAtAmount,
+      measurements,
       stock,
       images,
       tryOnImageUrl: null,
@@ -115,6 +126,9 @@ export class Product {
   }
   get compareAtAmount(): number | null {
     return this.props.compareAtAmount;
+  }
+  get measurements(): string | null {
+    return this.props.measurements;
   }
   get stock(): number {
     return this.props.stock;

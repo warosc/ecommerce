@@ -83,6 +83,7 @@ export class ProductController {
       brand: body.brand,
       priceAmount: body.priceAmount,
       compareAtAmount: body.compareAtAmount,
+      measurements: body.measurements,
       currency: body.currency,
       stock: body.stock,
       images: body.images,

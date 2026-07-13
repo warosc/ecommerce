@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   Length,
+  Matches,
   Min,
 } from 'class-validator';
 import type { CreateProductRequest } from '@optimus/contracts';
@@ -43,6 +44,13 @@ export class CreateProductRequestDto implements CreateProductRequest {
   @IsInt()
   @Min(0)
   compareAtAmount?: number;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{2}-\d{2}-\d{2,3}$/, {
+    message: 'measurements debe tener el formato "calibre-puente-varilla" (mm), p. ej. 52-18-140.',
+  })
+  measurements?: string;
 
   @IsOptional()
   @IsString()

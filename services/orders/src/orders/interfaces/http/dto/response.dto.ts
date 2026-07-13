@@ -29,6 +29,8 @@ export function toOrderDto(order: Order): OrderDto {
       email: order.customer.email,
       phone: order.customer.phone,
     },
+    lensType: order.lensType,
+    prescriptionNote: order.prescriptionNote,
     currency: order.currency,
     totalAmount: order.totalAmount,
     createdAt: order.createdAt.toISOString(),

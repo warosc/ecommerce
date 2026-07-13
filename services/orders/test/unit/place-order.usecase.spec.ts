@@ -49,6 +49,24 @@ describe('PlaceOrderUseCase', () => {
     });
   });
 
+  it('adjunta el tipo de lente y la receta al pedido', async () => {
+    const cartRepo = new InMemoryCartRepository();
+    await seededCart(cartRepo, 'FR-1', 1, 45000);
+    const order = await new PlaceOrderUseCase(
+      cartRepo,
+      new InMemoryOrderRepository(),
+      new StubInventoryGateway({ 'FR-1': 10 }),
+      new CollectingPublisher(),
+    ).execute({
+      cartId: 'c1',
+      customer,
+      lensType: 'MONOFOCAL',
+      prescriptionNote: 'OD -1.00 OI -0.75',
+    });
+    expect(order.lensType).toBe('MONOFOCAL');
+    expect(order.prescriptionNote).toBe('OD -1.00 OI -0.75');
+  });
+
   it('permite checkout cuando el SKU no está rastreado en inventario (onHand null)', async () => {
     const cartRepo = new InMemoryCartRepository();
     await seededCart(cartRepo, 'FR-1', 1);

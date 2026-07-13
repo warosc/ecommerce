@@ -36,6 +36,8 @@ export class OrdersController {
     const order = await this.placeOrder.execute({
       cartId: body.cartId,
       customer: body.customer,
+      lensType: body.lensType,
+      prescriptionNote: body.prescriptionNote,
     });
     return toOrderDto(order);
   }

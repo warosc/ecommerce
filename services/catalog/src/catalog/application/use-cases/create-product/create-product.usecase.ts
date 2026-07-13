@@ -44,6 +44,7 @@ export class CreateProductUseCase {
       brand: command.brand,
       price,
       compareAtAmount: command.compareAtAmount,
+      measurements: command.measurements,
       stock: command.stock,
       images: command.images,
     });

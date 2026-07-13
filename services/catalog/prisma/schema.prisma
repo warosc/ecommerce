@@ -27,6 +27,8 @@ model Product {
   priceAmount Int
   /// Precio anterior en centavos (para mostrar descuento). Nulo si no hay rebaja.
   compareAtAmount Int?
+  /// Medidas de la montura "calibre-puente-varilla" en mm (p. ej. 52-18-140). Nulo si no aplica.
+  measurements String?
   /// Moneda ISO 4217. Por defecto GTQ (Quetzal guatemalteco).
   currency    String      @default("GTQ")
   stock       Int         @default(0)

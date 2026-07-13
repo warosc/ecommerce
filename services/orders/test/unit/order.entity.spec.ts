@@ -29,6 +29,44 @@ describe('Order.create', () => {
     expect(order.paymentMethod).toBe('CASH');
   });
 
+  it('deja lensType y prescriptionNote en null por defecto', () => {
+    const order = Order.create(customer, [
+      { sku: 'FR-1', name: 'Montura', unitPriceAmount: 5000, quantity: 1 },
+    ]);
+    expect(order.lensType).toBeNull();
+    expect(order.prescriptionNote).toBeNull();
+  });
+
+  it('acepta tipo de lente y receta, recortando la nota', () => {
+    const order = Order.create(
+      customer,
+      [{ sku: 'FR-1', name: 'Montura', unitPriceAmount: 5000, quantity: 1 }],
+      { lensType: 'PROGRESIVO', prescriptionNote: '  OD -1.25  OI -1.00  ' },
+    );
+    expect(order.lensType).toBe('PROGRESIVO');
+    expect(order.prescriptionNote).toBe('OD -1.25  OI -1.00');
+  });
+
+  it('rechaza un tipo de lente inválido', () => {
+    expect(() =>
+      Order.create(
+        customer,
+        [{ sku: 'FR-1', name: 'x', unitPriceAmount: 100, quantity: 1 }],
+        { lensType: 'RARO' as never },
+      ),
+    ).toThrow(InvalidOrderError);
+  });
+
+  it('rechaza una receta demasiado larga', () => {
+    expect(() =>
+      Order.create(
+        customer,
+        [{ sku: 'FR-1', name: 'x', unitPriceAmount: 100, quantity: 1 }],
+        { prescriptionNote: 'x'.repeat(501) },
+      ),
+    ).toThrow(InvalidOrderError);
+  });
+
   it('rechaza pedido sin líneas', () => {
     expect(() => Order.create(customer, [])).toThrow(InvalidOrderError);
   });
@@ -50,6 +88,8 @@ describe('Order.create', () => {
       paymentMethod: null,
       customer,
       lines: created.lines,
+      lensType: null,
+      prescriptionNote: null,
       totalAmount: created.totalAmount,
       currency: 'GTQ',
       createdAt: created.createdAt,

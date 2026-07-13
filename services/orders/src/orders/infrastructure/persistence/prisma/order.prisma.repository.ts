@@ -22,6 +22,8 @@ export class PrismaOrderRepository implements OrderRepository {
         customerName: order.customer.name,
         customerEmail: order.customer.email,
         customerPhone: order.customer.phone ?? null,
+        lensType: order.lensType,
+        prescriptionNote: order.prescriptionNote,
         totalAmount: order.totalAmount,
         currency: order.currency,
         createdAt: order.createdAt,

@@ -42,6 +42,25 @@ describe('Product.create', () => {
     expect(() => Product.create(validInput({ compareAtAmount: 12.5 }))).toThrow(InvalidProductError);
   });
 
+  it('acepta medidas en notación óptica y las recorta', () => {
+    const product = Product.create(validInput({ measurements: ' 52-18-140 ' }));
+    expect(product.measurements).toBe('52-18-140');
+  });
+
+  it('deja measurements en null si se omite o va vacío', () => {
+    expect(Product.create(validInput()).measurements).toBeNull();
+    expect(Product.create(validInput({ measurements: '   ' })).measurements).toBeNull();
+  });
+
+  it('rechaza medidas con formato inválido', () => {
+    expect(() => Product.create(validInput({ measurements: '52x18x140' }))).toThrow(
+      InvalidProductError,
+    );
+    expect(() => Product.create(validInput({ measurements: 'grande' }))).toThrow(
+      InvalidProductError,
+    );
+  });
+
   it('aplica descripción vacía por defecto cuando se omite', () => {
     const input = validInput();
     delete (input as { description?: string }).description;
@@ -94,6 +113,7 @@ describe('Product.fromPersistence', () => {
       brand: 'Optimus',
       price: Money.create(6000),
       compareAtAmount: null,
+      measurements: null,
       stock: 10,
       images: [],
       tryOnImageUrl: null,

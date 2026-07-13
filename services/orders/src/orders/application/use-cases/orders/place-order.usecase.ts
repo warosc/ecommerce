@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { OrderPlacedEvent } from '@optimus/contracts';
-import { Order } from '../../../domain/entities/order.entity';
+import { LensType, Order } from '../../../domain/entities/order.entity';
 import { EmptyCartError, InsufficientStockError } from '../../../domain/errors';
 import {
   CART_REPOSITORY,
@@ -18,6 +18,8 @@ import { INVENTORY_GATEWAY, InventoryGateway } from '../../ports/inventory.gatew
 export interface PlaceOrderCommand {
   cartId: string;
   customer: { name: string; email: string; phone?: string };
+  lensType?: string | null;
+  prescriptionNote?: string | null;
 }
 
 /**
@@ -62,7 +64,12 @@ export class PlaceOrderUseCase {
         unitPriceAmount: l.unitPriceAmount,
         quantity: l.quantity,
       })),
-      { currency: cart.currency, channel: 'WEB' },
+      {
+        currency: cart.currency,
+        channel: 'WEB',
+        lensType: (command.lensType ?? null) as LensType | null,
+        prescriptionNote: command.prescriptionNote ?? null,
+      },
     );
 
     const saved = await this.orderRepository.create(order);

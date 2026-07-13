@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
 import {
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   Length,
   ValidateNested,
 } from 'class-validator';
-import type { CustomerDto, PlaceOrderRequest } from '@optimus/contracts';
+import { LENS_TYPES, type CustomerDto, type LensType, type PlaceOrderRequest } from '@optimus/contracts';
 
 class CustomerRequestDto implements CustomerDto {
   @IsString()
@@ -30,4 +31,13 @@ export class PlaceOrderRequestDto implements PlaceOrderRequest {
   @ValidateNested()
   @Type(() => CustomerRequestDto)
   customer!: CustomerRequestDto;
+
+  @IsOptional()
+  @IsIn([...LENS_TYPES])
+  lensType?: LensType;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 500)
+  prescriptionNote?: string;
 }

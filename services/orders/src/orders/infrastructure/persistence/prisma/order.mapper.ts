@@ -4,6 +4,7 @@ import {
   OrderStatus as PrismaOrderStatus,
 } from '@prisma/client';
 import {
+  LensType,
   Order,
   OrderChannel,
   OrderLine,
@@ -35,6 +36,8 @@ export class OrderMapper {
             quantity: l.quantity,
           }),
       ),
+      lensType: (record.lensType as LensType | null) ?? null,
+      prescriptionNote: record.prescriptionNote ?? null,
       totalAmount: record.totalAmount,
       currency: record.currency,
       createdAt: record.createdAt,
