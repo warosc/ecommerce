@@ -1,6 +1,7 @@
 import type { ProductDto, ProductType } from '@optimus/contracts';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { WishlistButton } from '@/components/WishlistButton';
 import { formatPrice } from '@/lib/format';
 
 const TYPE_LABELS: Record<ProductType, string> = {
@@ -22,6 +23,7 @@ export function ProductCard({ product }: { product: ProductDto }) {
 
   return (
     <article className="card">
+      <WishlistButton id={product.id} className="wishbtn--card" />
       <Link className="card__media" href={`/producto/${product.id}`} aria-label={product.name}>
         {hasDiscount ? <span className="card__discount">−{discountPct}%</span> : null}
         {image ? (

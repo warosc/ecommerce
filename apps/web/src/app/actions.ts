@@ -52,6 +52,9 @@ export async function checkoutAction(
   const cartId = await getCartId();
   if (!cartId) return { error: 'Tu carrito está vacío.' };
 
+  const lensType = String(formData.get('lensType') ?? '').trim();
+  const prescriptionNote = String(formData.get('prescriptionNote') ?? '').trim();
+
   const res = await fetch(`${ORDERS_API}/orders`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -62,6 +65,8 @@ export async function checkoutAction(
         email: String(formData.get('email') ?? ''),
         phone: String(formData.get('phone') ?? '') || undefined,
       },
+      lensType: lensType || undefined,
+      prescriptionNote: prescriptionNote || undefined,
     }),
     cache: 'no-store',
   });

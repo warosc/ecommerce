@@ -18,6 +18,12 @@ const VALUE_PROPS = [
   { icon: '↩️', title: '30 días de devolución', desc: 'Sin complicaciones' },
 ];
 
+const TESTIMONIALS = [
+  { text: 'Me las probé desde el sofá y acerté a la primera. Llegaron en 3 días.', name: 'Ana G.' },
+  { text: 'La montura que elegí me quedó justo como en el probador. Brutal.', name: 'Luis P.' },
+  { text: 'Atención por WhatsApp rapidísima y devolución sin líos.', name: 'Marta R.' },
+];
+
 export default async function HomePage() {
   let featured: ProductDto[] = [];
   try {
@@ -90,6 +96,23 @@ export default async function HomePage() {
           </div>
         </section>
       ) : null}
+
+      <section className="section">
+        <h2 className="section__title">Lo que dicen quienes ya ven(se) mejor</h2>
+        <div className="testimonials">
+          {TESTIMONIALS.map((t) => (
+            <figure className="testimonial" key={t.name}>
+              <blockquote>“{t.text}”</blockquote>
+              <figcaption>
+                <span className="testimonial__stars" aria-label="5 estrellas">
+                  ★★★★★
+                </span>
+                {t.name}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
 
       <section className="promo">
         <div className="promo__text">

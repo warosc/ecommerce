@@ -38,6 +38,7 @@ export async function createProduct(
   }
 
   const compareRaw = String(formData.get('compareAtAmount') ?? '').trim();
+  const measurementsRaw = String(formData.get('measurements') ?? '').trim();
   const body = {
     sku: String(formData.get('sku') ?? '').trim(),
     name: String(formData.get('name') ?? '').trim(),
@@ -46,6 +47,7 @@ export async function createProduct(
     brand: String(formData.get('brand') ?? '').trim(),
     priceAmount: Number(formData.get('priceAmount') ?? 0),
     compareAtAmount: compareRaw ? Number(compareRaw) : undefined,
+    measurements: measurementsRaw ? measurementsRaw : undefined,
     stock: Number(formData.get('stock') ?? 0),
   };
 

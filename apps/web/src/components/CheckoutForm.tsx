@@ -23,6 +23,32 @@ export function CheckoutForm() {
         Teléfono (opcional)
         <input name="phone" placeholder="5555-1234" />
       </label>
+
+      <h2>Graduación (opcional)</h2>
+      <p className="checkout__hint">
+        Si compras monturas con lente graduado, dinos qué tipo y tu fórmula. Si no,
+        déjalo en blanco.
+      </p>
+      <label>
+        Tipo de lente
+        <select name="lensType" defaultValue="">
+          <option value="">— No aplica —</option>
+          <option value="SIN_GRADUACION">Sin graduación</option>
+          <option value="MONOFOCAL">Monofocal</option>
+          <option value="PROGRESIVO">Progresivo</option>
+          <option value="OCUPACIONAL">Ocupacional</option>
+        </select>
+      </label>
+      <label>
+        Tu receta
+        <textarea
+          name="prescriptionNote"
+          rows={3}
+          maxLength={500}
+          placeholder="Ej. OD -1.25 (-0.50 x 180) · OI -1.00 · ADD +1.00"
+        />
+      </label>
+
       <button className="cta" type="submit" disabled={pending}>
         {pending ? 'Procesando…' : 'Confirmar pedido'}
       </button>

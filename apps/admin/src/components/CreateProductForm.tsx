@@ -46,10 +46,17 @@ export function CreateProductForm() {
         Precio anterior (centavos, opcional)
         <input name="compareAtAmount" type="number" min="0" placeholder="Para mostrar descuento" />
       </label>
-      <label>
-        Stock
-        <input name="stock" type="number" min="0" defaultValue={0} />
-      </label>
+      <div className="grid2">
+        <label>
+          Medidas (opcional)
+          <input name="measurements" placeholder="52-18-140" pattern="\d{2}-\d{2}-\d{2,3}" />
+          <small className="hint">Calibre-puente-varilla en mm. Solo monturas.</small>
+        </label>
+        <label>
+          Stock
+          <input name="stock" type="number" min="0" defaultValue={0} />
+        </label>
+      </div>
       <label>
         Imagen (opcional)
         <input name="image" type="file" accept="image/*" />

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { ProductGallery } from '@/components/ProductGallery';
+import { WishlistButton } from '@/components/WishlistButton';
 import { getProduct } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 
@@ -91,6 +92,31 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <p className="pdp__desc">{product.description}</p>
           ) : null}
 
+          {product.measurements ? (
+            <div className="pdp__specs">
+              <span className="pdp__specs-title">Medidas</span>
+              <div className="pdp__measure">
+                {(() => {
+                  const [caliber, bridge, temple] = product.measurements.split('-');
+                  return (
+                    <>
+                      <span>
+                        <strong>{caliber}</strong> calibre
+                      </span>
+                      <span>
+                        <strong>{bridge}</strong> puente
+                      </span>
+                      <span>
+                        <strong>{temple}</strong> varilla
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+              <small className="muted">Medidas en milímetros (mm)</small>
+            </div>
+          ) : null}
+
           <div className="pdp__actions">
             {product.active ? <AddToCartButton sku={product.sku} /> : null}
             {product.tryOnImageUrl ? (
@@ -98,6 +124,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 🕶 Probar en el probador
               </Link>
             ) : null}
+            <WishlistButton id={product.id} className="wishbtn--pdp" />
           </div>
 
           <ul className="trust">

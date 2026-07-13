@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Manrope } from 'next/font/google';
 import Link from 'next/link';
+import { SiteFooter } from '@/components/SiteFooter';
 import './globals.css';
 
 // Tipografía self-hosted por Next (sin CDN en runtime).
@@ -27,6 +28,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <nav className="nav">
               <Link href="/catalogo">Catálogo</Link>
               <Link href="/probador">Probador</Link>
+              <Link href="/favoritos" aria-label="Favoritos">
+                ♥
+              </Link>
               <Link href="/carrito" className="nav__cart">
                 Carrito
               </Link>
@@ -34,17 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
         {children}
-        <footer className="footer">
-          <div className="footer__inner">
-            <span className="brand brand--sm">
-              <span className="brand__mark" aria-hidden="true">
-                ◎
-              </span>
-              Óptica Optimus
-            </span>
-            <span className="footer__note">Optimus Engineering Kit · demo open source</span>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

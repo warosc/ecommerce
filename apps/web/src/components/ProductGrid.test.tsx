@@ -15,6 +15,7 @@ function makeProduct(id: string, name: string): ProductDto {
     stock: 1,
     images: [],
     compareAtAmount: null,
+    measurements: null,
       tryOnImageUrl: null,
     active: true,
     createdAt: '2024-01-01T00:00:00.000Z',
