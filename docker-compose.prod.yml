@@ -1,0 +1,174 @@
+# Despliegue reducido para VPS con poca RAM (~4GB) sin tocar otras apps del host.
+# Solo el sitio público y su cadena mínima: postgres, redis, rabbitmq,
+# catalog-api, inventory-api, orders-api y web. Sin Keycloak/OpenSearch/MinIO/
+# Traefik/admin/clinic/crm. La búsqueda del catálogo cae a BD si no hay
+# OpenSearch; las subidas de imágenes (admin) quedan deshabilitadas.
+#
+# Uso:
+#   docker compose -f docker-compose.prod.yml up -d --build
+# La web queda en http://<host>:8090 y la API de catálogo en http://<host>:3001.
+name: optimus-prod
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - optimus-net
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - optimus-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - optimus-net
+
+  catalog-api:
+    build:
+      context: .
+      dockerfile: services/catalog/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CATALOG_PORT: '3001'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      # OpenSearch no se despliega aquí; el catálogo reintenta y cae a BD.
+      OPENSEARCH_NODE: ${OPENSEARCH_NODE}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      # Arranque holgado: MinIO/OpenSearch ausentes añaden ~60s de reintentos.
+      start_period: 120s
+    ports:
+      - '3001:3001'
+    networks:
+      - optimus-net
+
+  inventory-api:
+    build:
+      context: .
+      dockerfile: services/inventory/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${INVENTORY_DATABASE_URL}
+      INVENTORY_PORT: '3003'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - optimus-net
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: services/orders/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${ORDERS_DATABASE_URL}
+      ORDERS_PORT: '3005'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      REDIS_URL: ${REDIS_URL}
+      CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
+      INVENTORY_API_INTERNAL: ${INVENTORY_API_INTERNAL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3005/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - optimus-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+    depends_on:
+      catalog-api:
+        condition: service_healthy
+      orders-api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL_INTERNAL: ${API_BASE_URL_INTERNAL}
+      ORDERS_API_INTERNAL: ${ORDERS_API_INTERNAL}
+      NODE_ENV: production
+    ports:
+      - '8090:3000'
+    networks:
+      - optimus-net
+
+networks:
+  optimus-net:
+    driver: bridge
+
+volumes:
+  pgdata:
