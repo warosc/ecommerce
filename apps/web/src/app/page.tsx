@@ -50,6 +50,20 @@ export default async function HomePage() {
             Probador virtual →
           </Link>
         </div>
+
+        <div className="hero__frames">
+          {[
+            { src: '/tryon-frames/redonda.svg', label: 'Redonda' },
+            { src: '/tryon-frames/rectangular.svg', label: 'Rectangular' },
+            { src: '/tryon-frames/cat-eye.svg', label: 'Cat-eye' },
+          ].map((f) => (
+            <Link className="hero__frame" href="/catalogo?type=FRAME" key={f.label}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={f.src} alt={`Montura ${f.label}`} />
+              <span>{f.label}</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="valueprops">
@@ -123,7 +137,8 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="promo__art" aria-hidden="true">
-          🕶️
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="promo__frame" src="/tryon-frames/cat-eye.svg" alt="" />
         </div>
       </section>
     </main>
