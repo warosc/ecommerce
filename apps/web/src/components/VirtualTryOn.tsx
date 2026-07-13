@@ -159,6 +159,21 @@ export function VirtualTryOn({
   }, []);
 
   const start = useCallback(async () => {
+    // La cámara (getUserMedia) solo está disponible en contextos seguros: HTTPS
+    // o localhost. En móviles, sobre HTTP público, navigator.mediaDevices es
+    // undefined y el probador nunca podría pedir permiso. Avisamos con claridad.
+    if (
+      typeof window !== 'undefined' &&
+      (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)
+    ) {
+      setStatus('error');
+      setMessage(
+        'El probador necesita una conexión segura (HTTPS) para acceder a la cámara. ' +
+          'Ábrelo desde el enlace https:// del sitio (en el celular, http no permite la cámara).',
+      );
+      return;
+    }
+
     setStatus('loading');
     setMessage('Cargando el modelo de detección facial…');
     try {
