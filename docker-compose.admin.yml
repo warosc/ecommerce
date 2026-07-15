@@ -1,0 +1,152 @@
+# Capa opcional del panel de administración para el despliegue de VPS.
+# Se aplica ENCIMA de docker-compose.prod.yml (no lo sustituye):
+#
+#   docker compose -f docker-compose.prod.yml -f docker-compose.admin.yml up -d
+#
+# Añade Keycloak (IAM), MinIO (imágenes), clinic-api, crm-api y el panel admin,
+# y le da a catalog-api las credenciales de MinIO para subir imágenes.
+#
+# Los puertos se publican SOLO en 127.0.0.1: el acceso público entra por el
+# túnel de Cloudflare (admin./auth./img.), nunca por la IP del VPS.
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    restart: unless-stopped
+    command: ['start-dev', '--import-realm']
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_ENABLED: 'true'
+      # Hostname público: los tokens se emiten con este issuer.
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL}
+      KC_HOSTNAME_STRICT: 'false'
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: 'true'
+      # Heap contenido: el VPS tiene 3.7GB y ya corre el sitio público.
+      JAVA_OPTS_APPEND: -Xms256m -Xmx512m
+    volumes:
+      # Realm de producción con credenciales propias (fuera de git).
+      - ${KEYCLOAK_REALM_DIR}:/opt/keycloak/data/import:ro
+    ports:
+      - '127.0.0.1:8081:8080'
+    networks:
+      - optimus-net
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - miniodata:/data
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    networks:
+      - optimus-net
+
+  # catalog-api ya existe en el compose de producción; aquí solo le añadimos
+  # las credenciales de MinIO para que pueda subir imágenes y monturas.
+  catalog-api:
+    environment:
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: '9000'
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+    depends_on:
+      minio:
+        condition: service_started
+
+  clinic-api:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: services/clinic/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${CLINIC_DATABASE_URL}
+      CLINIC_PORT: '3007'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      CLINIC_ENCRYPTION_KEY: ${CLINIC_ENCRYPTION_KEY}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3007/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - optimus-net
+
+  crm-api:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: services/crm/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${CRM_DATABASE_URL}
+      CRM_PORT: '3009'
+      NODE_ENV: production
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      KEYCLOAK_JWKS_URI: ${KEYCLOAK_JWKS_URI}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          node -e "fetch('http://localhost:3009/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - optimus-net
+
+  admin:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    depends_on:
+      keycloak:
+        condition: service_started
+      catalog-api:
+        condition: service_healthy
+      orders-api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_TRUST_HOST: 'true'
+      # URL pública del panel: debe coincidir con el redirect URI del realm.
+      AUTH_URL: ${ADMIN_PUBLIC_URL}
+      AUTH_KEYCLOAK_ID: ${AUTH_KEYCLOAK_ID}
+      AUTH_KEYCLOAK_SECRET: ${AUTH_KEYCLOAK_SECRET}
+      AUTH_KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      CATALOG_API_INTERNAL: ${API_BASE_URL_INTERNAL}
+      ORDERS_API_INTERNAL: ${ORDERS_API_INTERNAL}
+      CLINIC_API_INTERNAL: ${CLINIC_API_INTERNAL}
+      CRM_API_INTERNAL: ${CRM_API_INTERNAL}
+    ports:
+      - '127.0.0.1:3002:3002'
+    networks:
+      - optimus-net
+
+volumes:
+  miniodata:
