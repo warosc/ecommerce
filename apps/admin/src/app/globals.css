@@ -231,6 +231,22 @@ textarea {
   line-height: 1.5;
 }
 
+/* Revisión de la foto de la montura: consejos y avisos. */
+.uploader__tips {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.uploader__issues {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 code {
   background: var(--surface-2);
   padding: 0.1rem 0.35rem;

@@ -3,7 +3,7 @@
 import type { Config } from '@imgly/background-removal';
 import { useCallback, useRef, useState, useTransition } from 'react';
 import { setTryOnImageAction, type CreateProductState } from '@/app/actions';
-import { hasBakedCheckerboard } from '@/lib/checkerboard';
+import { analyzeFrameShot, type FrameIssue } from '@/lib/frame-quality';
 
 type Status = 'idle' | 'processing' | 'ready' | 'error';
 
@@ -120,7 +120,7 @@ export function TryOnUploader({
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
-  const [checkerWarning, setCheckerWarning] = useState(false);
+  const [issues, setIssues] = useState<FrameIssue[]>([]);
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
   const [correctedUrl, setCorrectedUrl] = useState<string | null>(null);
   const [rotationDeg, setRotationDeg] = useState(0);
@@ -144,10 +144,13 @@ export function TryOnUploader({
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    // Permite volver a elegir el mismo archivo: sin esto, el input conserva el
+    // valor y no vuelve a disparar onChange.
+    e.target.value = '';
     if (!file) return;
     setResult(null);
     setError('');
-    setCheckerWarning(false);
+    setIssues([]);
     setCorrectedUrl(null);
     setRotationDeg(0);
     setOriginalUrl(URL.createObjectURL(file));
@@ -169,14 +172,10 @@ export function TryOnUploader({
       img.onload = async () => {
         const base = toBaseCanvas(img);
         baseRef.current = base;
-        // Aviso si la foto traía el damero de transparencia pintado: el
-        // quitafondos no lo elimina (lo toma por parte de la montura) y en el
-        // probador saldrían cuadros grises en lugar de la cara.
-        const px = base
-          .getContext('2d')!
-          .getImageData(0, 0, base.width, base.height);
-        setCheckerWarning(hasBakedCheckerboard(px));
         tiltRef.current = detectTilt(base);
+        // Revisa el recorte y avisa de lo que estropearía el probador.
+        const px = base.getContext('2d')!.getImageData(0, 0, base.width, base.height);
+        setIssues(analyzeFrameShot(px, tiltRef.current));
         await reRender(0);
         setStatus('ready');
       };
@@ -195,6 +194,19 @@ export function TryOnUploader({
     const deg = Number(e.target.value);
     setRotationDeg(deg);
     void reRender(deg);
+  }
+
+  /** Tira la foto tomada y vuelve al punto de partida (sin tocar la guardada). */
+  function discard() {
+    setStatus('idle');
+    setIssues([]);
+    setError('');
+    setResult(null);
+    setOriginalUrl(null);
+    setCorrectedUrl(null);
+    setRotationDeg(0);
+    baseRef.current = null;
+    blobRef.current = null;
   }
 
   function save() {
@@ -243,14 +255,22 @@ export function TryOnUploader({
         ) : null}
       </div>
 
-      {status === 'ready' && checkerWarning ? (
-        <p className="alert alert--warn">
-          <strong>Ojo: esta imagen trae el damero de transparencia pintado.</strong> Los
-          cuadros grises son píxeles opacos, no transparencia real, así que en el probador
-          se verán sobre la cara en lugar de dejarla ver. Suele pasar al guardar una captura
-          de pantalla del editor. Usa un PNG exportado con transparencia real (o la foto
-          original sobre fondo liso, que aquí le quitamos el fondo).
+      {status === 'idle' ? (
+        <p className="uploader__tips muted">
+          Para que salga bien: la montura <strong>de frente y recta</strong>, sobre un
+          <strong> fondo liso que contraste</strong> (hoja blanca o mesa oscura), con buena
+          luz y ocupando buena parte del encuadre.
         </p>
+      ) : null}
+
+      {status === 'ready' && issues.length > 0 ? (
+        <ul className="uploader__issues">
+          {issues.map((i) => (
+            <li key={i.code} className="alert alert--warn">
+              {i.message}
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {status === 'ready' ? (
@@ -284,9 +304,14 @@ export function TryOnUploader({
           </span>
         ) : null}
         {status === 'ready' ? (
-          <button className="btn btn--primary" type="button" onClick={save} disabled={saving}>
-            {saving ? 'Guardando…' : 'Guardar montura'}
-          </button>
+          <>
+            <button className="btn btn--primary" type="button" onClick={save} disabled={saving}>
+              {saving ? 'Guardando…' : 'Guardar montura'}
+            </button>
+            <button className="btn" type="button" onClick={discard} disabled={saving}>
+              Descartar
+            </button>
+          </>
         ) : null}
       </div>
 
