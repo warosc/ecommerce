@@ -261,8 +261,21 @@ export function TryOnUploader({
       ) : null}
 
       <div className="uploader__actions">
+        {/* `capture` abre directamente la cámara del móvil (la toma el sistema,
+            no la web: no requiere HTTPS, a diferencia del probador). En
+            escritorio el atributo se ignora y abre el selector de archivos. */}
         <label className="btn btn--file">
-          Elegir foto…
+          📷 Tomar foto
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onFile}
+            hidden
+          />
+        </label>
+        <label className="btn btn--file">
+          Elegir archivo…
           <input type="file" accept="image/*" onChange={onFile} hidden />
         </label>
         {status === 'processing' ? (
