@@ -3,6 +3,7 @@
 import type { Config } from '@imgly/background-removal';
 import { useCallback, useRef, useState, useTransition } from 'react';
 import { setTryOnImageAction, type CreateProductState } from '@/app/actions';
+import { hasBakedCheckerboard } from '@/lib/checkerboard';
 
 type Status = 'idle' | 'processing' | 'ready' | 'error';
 
@@ -119,6 +120,7 @@ export function TryOnUploader({
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
+  const [checkerWarning, setCheckerWarning] = useState(false);
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
   const [correctedUrl, setCorrectedUrl] = useState<string | null>(null);
   const [rotationDeg, setRotationDeg] = useState(0);
@@ -145,6 +147,7 @@ export function TryOnUploader({
     if (!file) return;
     setResult(null);
     setError('');
+    setCheckerWarning(false);
     setCorrectedUrl(null);
     setRotationDeg(0);
     setOriginalUrl(URL.createObjectURL(file));
@@ -166,6 +169,13 @@ export function TryOnUploader({
       img.onload = async () => {
         const base = toBaseCanvas(img);
         baseRef.current = base;
+        // Aviso si la foto traía el damero de transparencia pintado: el
+        // quitafondos no lo elimina (lo toma por parte de la montura) y en el
+        // probador saldrían cuadros grises en lugar de la cara.
+        const px = base
+          .getContext('2d')!
+          .getImageData(0, 0, base.width, base.height);
+        setCheckerWarning(hasBakedCheckerboard(px));
         tiltRef.current = detectTilt(base);
         await reRender(0);
         setStatus('ready');
@@ -232,6 +242,16 @@ export function TryOnUploader({
           </figure>
         ) : null}
       </div>
+
+      {status === 'ready' && checkerWarning ? (
+        <p className="alert alert--warn">
+          <strong>Ojo: esta imagen trae el damero de transparencia pintado.</strong> Los
+          cuadros grises son píxeles opacos, no transparencia real, así que en el probador
+          se verán sobre la cara en lugar de dejarla ver. Suele pasar al guardar una captura
+          de pantalla del editor. Usa un PNG exportado con transparencia real (o la foto
+          original sobre fondo liso, que aquí le quitamos el fondo).
+        </p>
+      ) : null}
 
       {status === 'ready' ? (
         <label className="uploader__rotate">

@@ -223,6 +223,14 @@ textarea {
   color: var(--danger);
 }
 
+/* Aviso: no impide guardar, pero marca un problema probable en la imagen. */
+.alert--warn {
+  background: #fff4e5;
+  color: #7a4100;
+  border: 1px solid #ffd8a8;
+  line-height: 1.5;
+}
+
 code {
   background: var(--surface-2);
   padding: 0.1rem 0.35rem;
