@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TryOnFrame } from '@/lib/tryon';
+import { AddToCartButton } from '@/components/AddToCartButton';
+import { formatPrice } from '@/lib/format';
+import { DEFAULT_PD_RATIO, type TryOnFrame } from '@/lib/tryon';
 
 /**
  * Probador virtual (AR). Detecta la cara con MediaPipe FaceLandmarker (WASM y
@@ -13,9 +16,6 @@ import type { TryOnFrame } from '@/lib/tryon';
 // Índices de landmarks de la malla facial (esquinas de cada ojo).
 const RIGHT_EYE = [33, 133]; // ojo a la izquierda de la imagen
 const LEFT_EYE = [362, 263]; // ojo a la derecha de la imagen
-// Separación de los centros de lente respecto al ancho de la imagen de montura
-// (las demos SVG usan 0.4; buen valor por defecto para monturas subidas).
-const FRAME_PD_RATIO = 0.4;
 
 type Status = 'idle' | 'loading' | 'running' | 'error';
 
@@ -45,17 +45,23 @@ export function VirtualTryOn({
   );
   const [size, setSize] = useState(1); // multiplicador de tamaño de la montura
   const [offsetY, setOffsetY] = useState(0); // ajuste vertical fino (fracción)
+  const [faceDetected, setFaceDetected] = useState(true);
 
   // Espejo de los ajustes en refs: el bucle de render (rAF) es de larga vida y
   // debe leer siempre el valor actual, no el capturado al crearse.
   const sizeRef = useRef(size);
   const offsetYRef = useRef(offsetY);
+  const pdRatioRef = useRef(selected?.pdRatio ?? DEFAULT_PD_RATIO);
+  const faceRef = useRef(true);
   useEffect(() => {
     sizeRef.current = size;
   }, [size]);
   useEffect(() => {
     offsetYRef.current = offsetY;
   }, [offsetY]);
+  useEffect(() => {
+    pdRatioRef.current = selected?.pdRatio ?? DEFAULT_PD_RATIO;
+  }, [selected]);
 
   // Carga la imagen de la montura seleccionada.
   useEffect(() => {
@@ -138,9 +144,9 @@ export function VirtualTryOn({
       const midX = (right.x + left.x) / 2;
       const midY = (right.y + left.y) / 2;
 
-      // Ancho de dibujo tal que los centros de lente (a FRAME_PD_RATIO·ancho)
-      // coincidan con los ojos, ajustado por el multiplicador de tamaño.
-      const drawW = (eyeDist / FRAME_PD_RATIO) * sizeRef.current;
+      // Ancho de dibujo tal que los centros de lente (a pdRatio·ancho, propio de
+      // cada montura) coincidan con los ojos, ajustado por el multiplicador.
+      const drawW = (eyeDist / pdRatioRef.current) * sizeRef.current;
       const drawH = drawW * (frameImg.naturalHeight / frameImg.naturalWidth);
 
       ctx.translate(midX, midY);
@@ -154,6 +160,13 @@ export function VirtualTryOn({
       );
     }
     ctx.restore();
+
+    // Avisa si se pierde la cara, pero solo cuando cambia (no en cada frame).
+    const hasFace = Boolean(landmarks);
+    if (hasFace !== faceRef.current) {
+      faceRef.current = hasFace;
+      setFaceDetected(hasFace);
+    }
 
     rafRef.current = requestAnimationFrame(renderLoop);
   }, []);
@@ -183,7 +196,8 @@ export function VirtualTryOn({
       const landmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
         baseOptions: {
           modelAssetPath: '/models/face_landmarker.task',
-          delegate: 'CPU',
+          // GPU acelera notablemente el seguimiento en móvil.
+          delegate: 'GPU',
         },
         runningMode: 'VIDEO',
         numFaces: 1,
@@ -223,6 +237,42 @@ export function VirtualTryOn({
     rafRef.current = requestAnimationFrame(renderLoop);
   }, [renderLoop]);
 
+  const reset = useCallback(() => {
+    setSize(1);
+    setOffsetY(0);
+  }, []);
+
+  /** Congela el lienzo (vídeo + montura) y lo comparte o descarga. */
+  const capture = useCallback(async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/png'),
+    );
+    if (!blob) return;
+
+    const filename = `optimus-${selected?.label ?? 'montura'}.png`
+      .toLowerCase()
+      .replace(/[^a-z0-9.-]+/g, '-');
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    // En móvil, compartir nativo; si no está disponible o se cancela, descargar.
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: 'Mi montura en Óptica Optimus' });
+        return;
+      } catch {
+        // Cancelado por el usuario o no permitido: caemos a la descarga.
+      }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [selected]);
+
   if (frames.length === 0) {
     return <p className="alert alert--err">No hay monturas disponibles para probar.</p>;
   }
@@ -232,6 +282,11 @@ export function VirtualTryOn({
       <div className="tryon__stage">
         <video ref={videoRef} className="tryon__video" playsInline muted />
         <canvas ref={canvasRef} className="tryon__canvas" />
+        {status === 'running' && !faceDetected ? (
+          <p className="tryon__facehint" role="status">
+            No detectamos tu cara. Céntrate en el encuadre y busca buena luz.
+          </p>
+        ) : null}
         {status !== 'running' ? (
           <div className="tryon__overlay">
             {status === 'loading' ? (
@@ -253,6 +308,7 @@ export function VirtualTryOn({
             <button
               key={f.id}
               type="button"
+              role="option"
               className={`tryon__frame ${selected?.id === f.id ? 'is-selected' : ''}`}
               aria-selected={selected?.id === f.id}
               onClick={() => setSelected(f)}
@@ -264,6 +320,28 @@ export function VirtualTryOn({
             </button>
           ))}
         </div>
+
+        {selected?.product ? (
+          <div className="tryon__buy">
+            <div className="tryon__buyhead">
+              <strong>{selected.label}</strong>
+              <span className="tryon__price">
+                {formatPrice(selected.product.priceAmount, selected.product.currency)}
+              </span>
+            </div>
+            <div className="tryon__buyactions">
+              {selected.product.active ? <AddToCartButton sku={selected.product.sku} /> : null}
+              <Link className="cta cta--ghost" href={`/producto/${selected.id}`}>
+                Ver ficha
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <p className="tryon__demo muted">
+            Montura de demostración. Elige una del{' '}
+            <Link href="/catalogo?type=FRAME">catálogo</Link> para comprarla.
+          </p>
+        )}
 
         <label className="tryon__slider">
           Tamaño
@@ -289,9 +367,17 @@ export function VirtualTryOn({
         </label>
 
         {status === 'running' ? (
-          <button className="btn" type="button" onClick={stop}>
-            Apagar cámara
-          </button>
+          <div className="tryon__actions">
+            <button className="btn btn--primary" type="button" onClick={capture}>
+              📸 Tomar foto
+            </button>
+            <button className="btn" type="button" onClick={reset}>
+              Reajustar
+            </button>
+            <button className="btn" type="button" onClick={stop}>
+              Apagar cámara
+            </button>
+          </div>
         ) : null}
       </div>
     </div>

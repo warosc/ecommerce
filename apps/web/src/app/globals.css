@@ -1362,3 +1362,65 @@ h3 {
 .tryon__slider input {
   width: 100%;
 }
+
+/* Aviso flotante cuando se pierde el rostro. */
+.tryon__facehint {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 0.85rem;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: 90%;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(11, 16, 32, 0.8);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Compra directa desde el probador. */
+.tryon__buy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.tryon__buyhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tryon__price {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.tryon__buyactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tryon__buyactions .cta {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.tryon__demo {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.tryon__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
